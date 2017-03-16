@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.terasoluna.batch.async.db.repository.BatchJobRequestMapper">
+
+    <select id="find" resultType="org.terasoluna.batch.async.db.model.BatchJobRequest">
+        SELECT 
+            job_seq_id AS jobSeqId,
+            job_name AS jobName,
+            job_parameter AS jobParameter,
+            job_execution_id AS jobExecutionId,
+            polling_status AS pollingStatus,
+            create_date AS createDate,
+            update_date AS updateDate
+        FROM
+            batch_job_request
+        WHERE
+            polling_status = 'INIT'
+        ORDER BY 
+            job_seq_id ASC
+        LIMIT #{pollingRowLimit} 
+    </select>
+    
+    
+    <update id="updateStatus">
+        UPDATE
+            batch_job_request
+        SET
+            polling_status = #{batchJobRequest.pollingStatus},
+            job_execution_id = #{batchJobRequest.jobExecutionId},
+            update_date = #{batchJobRequest.updateDate}
+        WHERE
+            job_seq_id = #{batchJobRequest.jobSeqId}
+        AND
+            polling_status = #{pollingStatus}
+    </update>                       
+    
+</mapper>

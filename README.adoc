@@ -1,0 +1,37 @@
+= TERASOLUNA Batch Framework for Java (5.x) Common Library
+
+The common library of TERASOLUNA Batch Framework for Java (5.x) is a library of useful and unobtrusive common functionalities.
+
+image:https://img.shields.io/badge/license-Apache_2-blue.svg[License,link=https://www.apache.org/licenses/LICENSE-2.0]
+
+== Projects of Common Library
+
+All modules included in TERASOLUNA Batch Framework for Java (5.x) Common Library are listed up in the http://terasoluna-batch.github.io/guideline/5.0.0.RELEASE/ja/Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Components[development guideline].
+
+== Getting Started
+
+=== Using as a part of Template Blank Project
+
+In order to start using the common libaries, start with downloading Template Blank Project. Blank project already contains dependecies defined for TERASOLUNA Batch Framework for Java (5.x) Common Library. Template Blank Projects are available from the following links:
+
+* https://github.com/terasoluna-batch/v5-sample
+
+=== Using maven
+
+Common Library can be downloaded using maven through the following settings in pom.xml file.
+
+. Add the following dependency definitions.
+
+[source, xml]
+.pom.xml
+----
+<dependency>
+    <groupId>org.terasoluna.batch</groupId>
+    <artifactId>terasoluna-batch</artifactId>
+    <version>5.0.0.RELEASE</version>
+</dependency>
+----
+
+== How to contribute
+
+**Contributing (bug report, pull request, any comments etc.) is welcome !!** Please see the link:CONTRIBUTING.adoc[contributing guideline] for details.

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:c="http://www.springframework.org/schema/c" xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    
+    <import resource="classpath:/META-INF/spring/polling-task.xml"/>
+
+    <bean id="appProperty" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="location" value="classpath:/batch-application-polling-no-default-value.properties"/>
+    </bean>
+
+    <bean id="pollingTask" class="org.terasoluna.batch.async.db.JobRequestPollTask"
+          c:batchJobRequestMapper-ref="batchJobRequestMapper"
+          c:jobOperator-ref="jobOperator"
+          c:daemonTaskExecutor-ref="daemonTaskExecutor"
+          c:transactionManager-ref="transactionManager"
+          c:automaticJobRegistrar-ref="automaticJobRegistrar" />
+
+    <bean id="automaticJobRegistrar" class="org.springframework.batch.core.configuration.support.AutomaticJobRegistrar">
+        <property name="jobLoader">
+            <bean class="org.springframework.batch.core.configuration.support.DefaultJobLoader"
+                  p:jobRegistry-ref="jobRegistry" />
+        </property>
+    </bean>
+    <bean id="jobRegistry" class="org.springframework.batch.core.configuration.support.MapJobRegistry"/>
+
+    <bean id="jobOperator" class="org.terasoluna.batch.async.db.NoopJobOperator"/>
+
+</beans>

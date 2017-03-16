@@ -1,0 +1,158 @@
+= How to contribute Development of the TERASOLUNA Batch Framework for Java (5.x) Common Library
+
+This document describes how to contribute the v5-fw updates.
+
+The terasoluna-batch is the common library of TERASOLUNA Batch Framework for Java (5.x), and is Java projects for https://maven.apache.org/[Maven].
+About running Maven, refer to the https://maven.apache.org/run-maven/index.html[Building a Project with Maven].
+
+Contribution procedures are follows:
+
+== Create a new issue
+
+Please create a new issue from https://github.com/terasoluna-batch/v5-fw/issues/new[here] for contributing(bug report, improvement or new content), and get an issue number(tracking id).
+
+[NOTE]
+.Supported language
+====
+English only.
+====
+
+* Please write the contribution overview into the title area.
+* Please write the contribution detail into the comment area.
+
+e.g.)
+
+[source, text]
+----
+## Description
+In Comment on org.terasoluna.batch.item.file.FixedByteLengthBufferedReaderFactory , there is a mistake in the below sentence.
+
+`"A {@link BufferReaderFactory} useful for reading simple text files with no line endings and tokens separated by a fixed byte length. "`
+
+## Possible Solutions
+Modifying to `"A {@link BufferedReaderFactory} useful for reading simple text files with no line endings and tokens separated by a fixed byte length. "`
+
+## Affects Version/s
+* 5.0.0.RELEASE
+
+## Fix Version/s
+(To be written later by project member)
+
+## Issue Links
+N/A
+----
+
+== Fork a repository
+
+Please fork the ``terasoluna-batch/v5-fw`` into your account repository of GitHub.
+
+* Click a "Fork" button on GitHub web user interface.
+
+== Clone a repository
+
+Please clone a forked repository into your local machine.
+
+e.g.)
+
+[source, text]
+----
+$ git clone https://github.com/{your account}/v5-fw.git
+----
+
+== Create a work branch
+
+Please create a work branch on the master branch into your local repository.
+
+[NOTE]
+.Recommended work branch name
+====
+issues/{issue number}_{short description}
+====
+
+e.g.)
+
+[source, text]
+----
+$ git checkout master
+$ git checkout -b issues/999_typo-in-FixedByteLengthBufferedReaderFactory
+----
+
+== Modify the terasoluna-batch
+
+Please modify the terasoluna-batch for contributing.
+
+== Build projects and execute tests
+
+Please build all projects and execute all tests using the https://maven.apache.org/[Maven].
+
+[source, text]
+----
+$ cd {root directory of your local repository}
+$ mvn -U clean install
+----
+
+If a maven build result has failed, please modify a source code again.
+
+== Commit a modification
+
+Please commit a modification.
+
+[NOTE]
+.Commit comment format
+====
+"{modification overview} #{issue number}"
+====
+
+[NOTE]
+.Supported language
+====
+English only.
+====
+
+e.g.)
+
+[source, text]
+----
+$ git commit -a -m "Fixes typos in FixedByteLengthBufferedReaderFactory #999"
+----
+
+
+== Push a work branch
+
+Please push a work branch to the GitHub.
+
+e.g.)
+
+[source, text]
+----
+$ git push origin issues/999_typo-in-FixedByteLengthBufferedReaderFactory
+----
+
+== Create a pull request
+
+Please create a pull request via GitHub web user interface.
+For details, please refer to the https://help.github.com/articles/creating-a-pull-request/[GitHub document-Creating a pull request].
+
+[NOTE]
+.Note: Supported language
+====
+English only.
+====
+
+* Please write the modification overview into the title area and add the #{issue number} at its end. (Default is commit comment or work branch name)
+* Please write the modification detail into the comment area. (If needed)
+* Please include the issue number(``#{issue number}`` format) to track a modification into the comment area.
+
+e.g.)
+
+[cols="30,70", options="header"]
+|===
+|Area
+|Content
+
+|Title
+|Fixes typos in FixedByteLengthBufferedReaderFactory #999
+
+|Comment
+|Please review #999 .
+|===

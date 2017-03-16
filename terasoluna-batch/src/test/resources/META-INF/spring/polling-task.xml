@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+    http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd
+    http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <context:annotation-config />
+
+    <context:property-placeholder properties-ref="appProperty" order="1"/>
+    <bean id="appProperty" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="location" value="classpath:/batch-application.properties"/>
+    </bean>
+
+
+    <task:scheduler id="pollingScheduler" pool-size="5"/>
+
+    <task:executor id="daemonTaskExecutor" pool-size="${async-batch-daemon.job-concurrency-num:3}" queue-capacity="-1"/>
+
+    <bean id="daemonSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="configuration">
+            <bean class="org.apache.ibatis.session.Configuration">
+                <property name="cacheEnabled" value="true"/>
+                <property name="lazyLoadingEnabled" value="false"/>
+                <property name="localCacheScope" value="STATEMENT"/>
+                <property name="defaultExecutorType" value="REUSE"/>
+            </bean>
+        </property>
+    </bean>
+
+    <mybatis:scan base-package="org.terasoluna.batch.async.db.repository" factory-ref="daemonSqlSessionFactory"/>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+        <property name="maxTotal" value="10" />
+        <property name="defaultAutoCommit" value="false" />
+    </bean>
+
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <jdbc:initialize-database data-source="dataSource" ignore-failures="ALL">
+        <jdbc:script location="classpath:/org/terasoluna/batch/async/db/schema-h2.sql"/>
+        <jdbc:script location="classpath:/org/terasoluna/batch/async/db/schema-commit.sql"/>
+    </jdbc:initialize-database>
+
+    <tx:annotation-driven/>
+</beans>
