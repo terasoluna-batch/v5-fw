@@ -42,7 +42,7 @@ import org.springframework.transaction.TransactionStatus
 import org.springframework.util.ClassUtils
 import org.terasoluna.batch.async.db.model.BatchJobRequest
 import org.terasoluna.batch.async.db.model.PollingStatus
-import org.terasoluna.batch.async.db.repository.BatchJobRequestMapper
+import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository
 import spock.lang.Narrative
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -82,7 +82,7 @@ class JobRequestPollTaskSpec extends Specification {
     @Qualifier("appProperty")
     Properties appProperty
 
-    def batchJobRequestMapper = Mock(BatchJobRequestMapper)
+    def batchJobRequestRepository = Mock(BatchJobRequestRepository)
 
     def transactionManager = Mock(PlatformTransactionManager)
 
@@ -99,17 +99,17 @@ class JobRequestPollTaskSpec extends Specification {
     }
 
 
-    def "One of the essential argument 'BatchJobRequestMapper' is the null, to create an instance"() {
+    def "One of the essential argument 'BatchJobRequestRepository' is the null, to create an instance"() {
         when:
         new JobRequestPollTask(null, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.getMessage() == "batchJobRequestMapper must be not null."
+        ex.getMessage() == "batchJobRequestRepository must be not null."
     }
 
     def "One of the essential argument 'TransactionManager' is the null, to create an instance"() {
         when:
-        new JobRequestPollTask(batchJobRequestMapper, null, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        new JobRequestPollTask(batchJobRequestRepository, null, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         then:
         def ex = thrown(IllegalArgumentException)
         ex.getMessage() == "transactionManager must be not null."
@@ -117,7 +117,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "One of the essential argument 'daemonTaskExecutor' is the null, to create an instance"() {
         when:
-        new JobRequestPollTask(batchJobRequestMapper, transactionManager, null, jobOperator, automaticJobRegistrar)
+        new JobRequestPollTask(batchJobRequestRepository, transactionManager, null, jobOperator, automaticJobRegistrar)
         then:
         def ex = thrown(IllegalArgumentException)
         ex.getMessage() == "daemonTaskExecutor must be not null."
@@ -125,7 +125,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "One of the essential argument 'JobOperator' is the null, to create an instance"() {
         when:
-        new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, null, automaticJobRegistrar)
+        new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, null, automaticJobRegistrar)
         then:
         def ex = thrown(IllegalArgumentException)
         ex.getMessage() == "jobOperator must be not null."
@@ -133,7 +133,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "One of the essential argument 'AutomaticJobRegistrar' is the null, to create an instance"() {
         when:
-        new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, null)
+        new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, null)
         then:
         def ex = thrown(IllegalArgumentException)
         ex.getMessage() == "automaticJobRegistrar must be not null."
@@ -142,7 +142,7 @@ class JobRequestPollTaskSpec extends Specification {
     def "Setting polling task after Bean generation is completed"() {
         setup:
         def taskExecutorMock = Spy(ThreadPoolTaskExecutor)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, taskExecutorMock, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, taskExecutorMock, jobOperator, automaticJobRegistrar)
         context.getAutowireCapableBeanFactory().autowireBeanProperties(task, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false)
         task.@optionalPollingQueryParams =  ["param1":"1", "Param2":2]
 
@@ -156,7 +156,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "To stop the polling process when the Bean is destroyed by the daemon stop"() {
         setup:
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         when:
         task.destroy()
         then:
@@ -165,7 +165,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "To set the query parameters"() {
         setup:
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         def paramDate = new Date()
         def paramMap = ["param1":"1", "Param2":2, "Params3":paramDate]
         when:
@@ -181,7 +181,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 3
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -189,8 +189,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        (count * 2) * batchJobRequestMapper.updateStatus(_,_) >> 1
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        (count * 2) * batchJobRequestRepository.updateStatus(_,_) >> 1
         count * jobOperator.start(_,_) >>> [1,2,3]
         (count * 2 + 1) * transactionManager.getTransaction(_) >> transactionStatusMock
         (count * 2 + 1) * transactionManager.commit(_)
@@ -202,7 +202,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 0
         List<BatchJobRequest> jobRequests = []
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -210,8 +210,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        (count * 2) * batchJobRequestMapper.updateStatus(_,_) >> 1
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        (count * 2) * batchJobRequestRepository.updateStatus(_,_) >> 1
         count * jobOperator.start(_,_) >>> [1,2,3]
         (count * 2 + 1) * transactionManager.getTransaction(_) >> transactionStatusMock
         (count * 2 + 1) * transactionManager.commit(_)
@@ -230,7 +230,7 @@ class JobRequestPollTaskSpec extends Specification {
         executorSpy.initialize()
         executorSpy.execute(_) >> {callRealMethod()} >> {throw new TaskRejectedException("reject")} >> {callRealMethod()}
 
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, executorSpy, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, executorSpy, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
 
@@ -242,8 +242,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        2 * batchJobRequestMapper.updateStatus(_,_) >> 1
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        2 * batchJobRequestRepository.updateStatus(_,_) >> 1
         1 * jobOperator.start(_,_) >>> 1L
         3 * transactionManager.getTransaction(_) >> transactionStatusMock
         3 * transactionManager.commit(_)
@@ -259,7 +259,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 1
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -267,8 +267,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        1 * batchJobRequestMapper.updateStatus(_,_) >>> [0,1]
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        1 * batchJobRequestRepository.updateStatus(_,_) >>> [0, 1]
         0 * jobOperator.start(_,_) >>> [1,2,3]
         2 * transactionManager.getTransaction(_) >> transactionStatusMock
         2 * transactionManager.commit(_)
@@ -292,7 +292,7 @@ class JobRequestPollTaskSpec extends Specification {
         taskExecutor.maxPoolSize = count
         taskExecutor.queueCapacity = -1
         taskExecutor.initialize()
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, taskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, taskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -300,8 +300,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        (count * 2) * batchJobRequestMapper.updateStatus(_,_) >> 1
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        (count * 2) * batchJobRequestRepository.updateStatus(_,_) >> 1
         (count * 2 + 1) * transactionManager.getTransaction(_) >> transactionStatusMock
         (count * 2 + 1) * transactionManager.commit(_)
         0 * transactionManager.rollback(_)
@@ -320,7 +320,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 1
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -328,8 +328,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        1 * batchJobRequestMapper.updateStatus(_,_) >> {throw new RuntimeException("db access error.")} >> 1
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        1 * batchJobRequestRepository.updateStatus(_,_) >> {throw new RuntimeException("db access error.")} >> 1
         0 * jobOperator.start(_,_) >>> 1
         2 * transactionManager.getTransaction(_) >> transactionStatusMock
         1 * transactionManager.commit(_)
@@ -344,7 +344,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 1
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
         def warnLog = LoggingEvent.warn("JobExecutionId update failed. [JobSeqId:{}][JobName:{}]",
@@ -355,8 +355,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        1 * batchJobRequestMapper.find(_) >> jobRequests
-        2 * batchJobRequestMapper.updateStatus(_,_) >>> [1,0]
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        2 * batchJobRequestRepository.updateStatus(_,_) >>> [1, 0]
         1 * jobOperator.start(_,_) >>> 1
         3 * transactionManager.getTransaction(_) >> transactionStatusMock
         3 * transactionManager.commit(_)
@@ -371,7 +371,7 @@ class JobRequestPollTaskSpec extends Specification {
         def count = 1
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
         task.@shutdownCalled = true
 
@@ -380,8 +380,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        0 * batchJobRequestMapper.find(_) >> jobRequests
-        0 * batchJobRequestMapper.updateStatus(_,_) >> {throw new RuntimeException("db access error.")}
+        0 * batchJobRequestRepository.find(_) >> jobRequests
+        0 * batchJobRequestRepository.updateStatus(_,_) >> {throw new RuntimeException("db access error.")}
         0 * jobOperator.start(_,_) >>> 1
         0 * transactionManager.getTransaction(_) >> transactionStatusMock
         0 * transactionManager.commit(_)
@@ -428,7 +428,7 @@ class JobRequestPollTaskSpec extends Specification {
         def localAutomaticJobRegistrar = Mock(AutomaticJobRegistrar) {
             1 * isRunning() >> false
         }
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, localAutomaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, localAutomaticJobRegistrar)
         task.@pollingRowLimit = count
 
         when:
@@ -436,8 +436,8 @@ class JobRequestPollTaskSpec extends Specification {
         sleep(1000L)
 
         then:
-        0 * batchJobRequestMapper.find(_) >> jobRequests
-        0 * batchJobRequestMapper.updateStatus(_,_) >>> [0,1]
+        0 * batchJobRequestRepository.find(_) >> jobRequests
+        0 * batchJobRequestRepository.updateStatus(_,_) >>> [0, 1]
         0 * jobOperator.start(_,_) >>> [1,2,3]
         0 * transactionManager.getTransaction(_) >> transactionStatusMock
         0 * transactionManager.commit(_)
@@ -451,10 +451,10 @@ class JobRequestPollTaskSpec extends Specification {
         setup:
         def count = 0
         List<BatchJobRequest> jobRequests = []
-        def task = new JobRequestPollTask(batchJobRequestMapper, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
-        batchJobRequestMapper.find(_) >> jobRequests
+        batchJobRequestRepository.find(_) >> jobRequests
 
         expect:
         task.setEnablePollingLog(enablePollingLog)

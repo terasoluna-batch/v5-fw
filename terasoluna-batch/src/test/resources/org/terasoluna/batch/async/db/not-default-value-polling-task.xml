@@ -12,7 +12,7 @@
     </bean>
 
     <bean id="pollingTask" class="org.terasoluna.batch.async.db.JobRequestPollTask"
-          c:batchJobRequestMapper-ref="batchJobRequestMapper"
+          c:batchJobRequestRepository-ref="batchJobRequestRepository"
           c:jobOperator-ref="jobOperator"
           c:daemonTaskExecutor-ref="daemonTaskExecutor"
           c:transactionManager-ref="transactionManager"

@@ -102,6 +102,7 @@ public class AsyncBatchDaemon {
         try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(new String[] { configLocation }, false)) {
             context.getEnvironment().setActiveProfiles("async");
             context.refresh();
+            context.registerShutdownHook();
             context.getAutowireCapableBeanFactory().autowireBeanProperties(this,
                     AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 

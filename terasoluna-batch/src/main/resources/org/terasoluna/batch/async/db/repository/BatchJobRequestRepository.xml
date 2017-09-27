@@ -2,10 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="org.terasoluna.batch.async.db.repository.BatchJobRequestMapper">
+<mapper namespace="org.terasoluna.batch.async.db.repository.BatchJobRequestRepository">
 
     <select id="find" resultType="org.terasoluna.batch.async.db.model.BatchJobRequest">
-        SELECT 
+        <![CDATA[
+        SELECT
             job_seq_id AS jobSeqId,
             job_name AS jobName,
             job_parameter AS jobParameter,
@@ -17,23 +18,33 @@
             batch_job_request
         WHERE
             polling_status = 'INIT'
-        ORDER BY 
+        ORDER BY
             job_seq_id ASC
-        LIMIT #{pollingRowLimit} 
+        ]]>
+        <choose>
+            <when test="_databaseId == 'oracle'">
+                FETCH FIRST #{pollingRowLimit} ROWS ONLY
+            </when>
+            <otherwise>
+                LIMIT #{pollingRowLimit}
+            </otherwise>
+        </choose>
     </select>
     
-    
+
     <update id="updateStatus">
+        <![CDATA[
         UPDATE
             batch_job_request
         SET
             polling_status = #{batchJobRequest.pollingStatus},
-            job_execution_id = #{batchJobRequest.jobExecutionId},
+            job_execution_id = #{batchJobRequest.jobExecutionId,jdbcType=NUMERIC},
             update_date = #{batchJobRequest.updateDate}
         WHERE
             job_seq_id = #{batchJobRequest.jobSeqId}
         AND
             polling_status = #{pollingStatus}
-    </update>                       
+        ]]>
+    </update>
     
 </mapper>

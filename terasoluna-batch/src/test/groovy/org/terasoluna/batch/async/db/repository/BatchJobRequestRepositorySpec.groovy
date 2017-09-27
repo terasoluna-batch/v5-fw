@@ -34,7 +34,7 @@ import spock.lang.Unroll
 import java.sql.Timestamp
 
 /**
- * Test BatchJobRequestMapper
+ * Test BatchJobRequestRepository
  *
  * 5.0.0
  */
@@ -47,10 +47,10 @@ It has provided the following operations
 2.Update the polling status of the job request table
 3.Update the polling status and job execution ID of the job request table
 """)
-class BatchJobRequestMapperSpec extends Specification {
+class BatchJobRequestRepositorySpec extends Specification {
 
     @Autowired
-    BatchJobRequestMapper batchJobRequestMapper
+    BatchJobRequestRepository batchJobRequestRepository
 
     @Autowired
     @Qualifier("appProperty")
@@ -98,7 +98,7 @@ class BatchJobRequestMapperSpec extends Specification {
         expect:
         def params = ["pollingRowLimit":limits]
 
-        def items = batchJobRequestMapper.find(params)
+        def items = batchJobRequestRepository.find(params)
         items.size() == count
 
 
@@ -135,7 +135,7 @@ class BatchJobRequestMapperSpec extends Specification {
         when:
         def params = ["pollingRowLimit":5]
 
-        def items = batchJobRequestMapper.find(params)
+        def items = batchJobRequestRepository.find(params)
 
         then:
         items.size() == 4
@@ -162,7 +162,7 @@ class BatchJobRequestMapperSpec extends Specification {
         tester.connection.connection.commit()
 
         expect:
-            count == batchJobRequestMapper.updateStatus(request, conditionStatus)
+            count == batchJobRequestRepository.updateStatus(request, conditionStatus)
 
         where:
         request                                       | conditionStatus       || count
@@ -196,7 +196,7 @@ class BatchJobRequestMapperSpec extends Specification {
         }.getTable("batch_job_request")
 
         when:
-        def count = batchJobRequestMapper.updateStatus(crateJobRequest(2, PollingStatus.POLLED, null), PollingStatus.INIT)
+        def count = batchJobRequestRepository.updateStatus(crateJobRequest(2, PollingStatus.POLLED, null), PollingStatus.INIT)
 
         then:
         count == 1
@@ -227,7 +227,7 @@ class BatchJobRequestMapperSpec extends Specification {
         tester.connection.connection.commit()
 
         expect:
-        count == batchJobRequestMapper.updateStatus(request, conditionStatus)
+        count == batchJobRequestRepository.updateStatus(request, conditionStatus)
 
         where:
         request                                         | conditionStatus       || count
@@ -261,7 +261,7 @@ class BatchJobRequestMapperSpec extends Specification {
         }.getTable("batch_job_request")
 
         when:
-        def count = batchJobRequestMapper.updateStatus(crateJobRequest(2, PollingStatus.POLLED, 200), PollingStatus.INIT)
+        def count = batchJobRequestRepository.updateStatus(crateJobRequest(2, PollingStatus.POLLED, 200), PollingStatus.INIT)
 
         then:
         count == 1

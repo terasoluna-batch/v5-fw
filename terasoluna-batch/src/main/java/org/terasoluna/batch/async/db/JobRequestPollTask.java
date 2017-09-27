@@ -34,7 +34,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
 import org.terasoluna.batch.async.db.model.BatchJobRequest;
 import org.terasoluna.batch.async.db.model.PollingStatus;
-import org.terasoluna.batch.async.db.repository.BatchJobRequestMapper;
+import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     /**
      * Batch Job Request Table Mapper.
      */
-    private final BatchJobRequestMapper batchJobRequestMapper;
+    private final BatchJobRequestRepository batchJobRequestRepository;
 
     /**
      * Transaction manager.
@@ -134,23 +134,23 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     /**
      * Create JobRequestPollTask instance.
      * 
-     * @param batchJobRequestMapper {@link BatchJobRequestMapper}.
+     * @param batchJobRequestRepository {@link BatchJobRequestRepository}.
      * @param transactionManager Transaction manager.
      * @param daemonTaskExecutor Thread poll task executor for concurrently execute job.
      * @param automaticJobRegistrar AutomaticJobRegistrar for waiting completion of initializing jobRegistry.
      * @param jobOperator Job operator for launch job.
      */
-    public JobRequestPollTask(BatchJobRequestMapper batchJobRequestMapper,
+    public JobRequestPollTask(BatchJobRequestRepository batchJobRequestRepository,
             PlatformTransactionManager transactionManager, ThreadPoolTaskExecutor daemonTaskExecutor,
             JobOperator jobOperator, AutomaticJobRegistrar automaticJobRegistrar) {
 
-        Assert.notNull(batchJobRequestMapper, "batchJobRequestMapper must be not null.");
+        Assert.notNull(batchJobRequestRepository, "batchJobRequestRepository must be not null.");
         Assert.notNull(jobOperator, "jobOperator must be not null.");
         Assert.notNull(transactionManager, "transactionManager must be not null.");
         Assert.notNull(daemonTaskExecutor, "daemonTaskExecutor must be not null.");
         Assert.notNull(automaticJobRegistrar, "automaticJobRegistrar must be not null.");
 
-        this.batchJobRequestMapper = batchJobRequestMapper;
+        this.batchJobRequestRepository = batchJobRequestRepository;
         this.transactionManager = transactionManager;
         this.daemonTaskExecutor = daemonTaskExecutor;
         this.jobOperator = jobOperator;
@@ -197,7 +197,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
         TransactionStatus status = transactionManager.getTransaction(definition);
 
         try {
-            List<BatchJobRequest> requests = batchJobRequestMapper.find(pollingQueryParams);
+            List<BatchJobRequest> requests = batchJobRequestRepository.find(pollingQueryParams);
             for (final BatchJobRequest request : requests) {
                 try {
                     daemonTaskExecutor.execute(() -> executeJob(request));
@@ -285,7 +285,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
         TransactionStatus status = transactionManager.getTransaction(definition);
         int result = 0;
         try {
-            result = batchJobRequestMapper.updateStatus(batchJobRequest, pollingStatus);
+            result = batchJobRequestRepository.updateStatus(batchJobRequest, pollingStatus);
             transactionManager.commit(status);
         } catch (Exception e) {
             logger.error("Update of batch job request table is fail.", e);

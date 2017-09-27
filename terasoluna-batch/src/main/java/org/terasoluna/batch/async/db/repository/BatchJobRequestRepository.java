@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Batch Job Request Table Mapper.
+ * Batch Job Request Table Repository.
  * <p>
  * Batch Job Request Table access interface with MyBatis. Bean is created by {@code <mybatis:scan>} in xml application context
  * file.
@@ -31,7 +31,7 @@ import java.util.Map;
  * 
  * @since 5.0.0
  */
-public interface BatchJobRequestMapper {
+public interface BatchJobRequestRepository {
 
     /**
      * Retrieve Batch Job Request Table by any parameters.
