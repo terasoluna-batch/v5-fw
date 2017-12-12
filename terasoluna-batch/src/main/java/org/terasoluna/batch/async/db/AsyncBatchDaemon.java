@@ -123,8 +123,7 @@ public class AsyncBatchDaemon {
             }
 
         } catch (Throwable e) {
-            String message = "Daemon termination error: " + e.getMessage();
-            logger.error(message, e);
+            logger.error("Async Batch Daemon stopped due to an error. [Error:" + e.getMessage() + "]", e);
             return FAILURE_STATUS;
         } finally {
             if (detectedWatchKey != null) {
@@ -189,7 +188,7 @@ public class AsyncBatchDaemon {
             logger.error("Path not exists. Directory must exist for monitoring file. [Path:{}]", filePath);
             return FAILURE_STATUS;
         } else if (filePath.toFile().exists()) {
-            logger.error("Polling stop file already exists. Daemon stop. Please delete the file.");
+            logger.error("Polling stop file already exists. Daemon stop. Please delete the file. [Path:{}]", filePath);
             return FAILURE_STATUS;
         }
 
@@ -198,13 +197,20 @@ public class AsyncBatchDaemon {
 
     /**
      * Check whether the file matches.
-     * 
+     *
      * @param filePath Comparison source file
      * @param checkPath Files to be compared
      * @return true is match.
      */
     private boolean isTarget(Path filePath, Path checkPath) {
-        return filePath.getFileName().equals(checkPath.getFileName());
+        if (!filePath.getFileName().equals(checkPath.getFileName())) {
+            return false;
+        }
+        if (filePath.toFile().isDirectory()) {
+            logger.warn("Polling stop file must be a regular file. [Path:{}]", filePath);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -232,7 +238,7 @@ public class AsyncBatchDaemon {
      * <p>
      * File to be monitored, please set in the key of "async-batch-daemon.polling-stop-file-path" in the properties file
      * </p>
-     * 
+     *
      * @param args <ul>
      *            <li>configLocation: The xml application context containing a customized polling task.</li>
      *            </ul>

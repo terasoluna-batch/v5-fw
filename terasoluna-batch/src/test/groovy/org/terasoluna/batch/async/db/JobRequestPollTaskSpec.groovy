@@ -51,6 +51,10 @@ import uk.org.lidalia.slf4jtest.LoggingEvent
 import uk.org.lidalia.slf4jtest.TestLoggerFactory
 
 import java.sql.Timestamp
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 import static org.hamcrest.CoreMatchers.hasItem
 import static spock.util.matcher.HamcrestSupport.that
@@ -98,6 +102,7 @@ class JobRequestPollTaskSpec extends Specification {
         TestLoggerFactory.clearAll()
     }
 
+    def clock = Clock.systemDefaultZone()
 
     def "One of the essential argument 'BatchJobRequestRepository' is the null, to create an instance"() {
         when:
@@ -347,8 +352,9 @@ class JobRequestPollTaskSpec extends Specification {
         def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
         task.@pollingRowLimit = count
 
-        def warnLog = LoggingEvent.warn("JobExecutionId update failed. [JobSeqId:{}][JobName:{}]",
-                jobRequests.get(0).jobSeqId, jobRequests.get(0).jobName)
+        def jobExecutionId = 1L
+        def warnLog = LoggingEvent.warn("JobExecutionId update failed. [JobSeqId:{}][JobName:{}][JobExecutionId:{}]",
+                jobRequests.get(0).jobSeqId, jobRequests.get(0).jobName, jobExecutionId)
 
         when:
         task.poll()
@@ -357,7 +363,7 @@ class JobRequestPollTaskSpec extends Specification {
         then:
         1 * batchJobRequestRepository.find(_) >> jobRequests
         2 * batchJobRequestRepository.updateStatus(_,_) >>> [1, 0]
-        1 * jobOperator.start(_,_) >>> 1
+        1 * jobOperator.start(_,_) >>> jobExecutionId
         3 * transactionManager.getTransaction(_) >> transactionStatusMock
         3 * transactionManager.commit(_)
         0 * transactionManager.rollback(_)
@@ -467,6 +473,32 @@ class JobRequestPollTaskSpec extends Specification {
         false            || false
     }
 
+    def "Check whether time can be fixed"() {
+        setup:
+        def count = 2
+        List<BatchJobRequest> jobRequests = createRequest(count)
+        def transactionStatusMock = Mock(TransactionStatus)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        task.@pollingRowLimit = count
+
+        when:
+        def instant = Instant.parse("2017-01-01T00:00:00Z")
+        task.setClock(Clock.fixed(instant, ZoneId.of("PST", ZoneId.SHORT_IDS)))
+        task.poll()
+        sleep(1000L)
+
+        then:
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        (count * 2) * batchJobRequestRepository.updateStatus(_,_) >> 1
+        count * jobOperator.start(_,_) >>> [1,2]
+        (count * 2 + 1) * transactionManager.getTransaction(_) >> transactionStatusMock
+        (count * 2 + 1) * transactionManager.commit(_)
+        0 * transactionManager.rollback(_)
+        task.clock.getZone().getId() == "America/Los_Angeles"
+        jobRequests.get(0).updateDate.toInstant() == instant
+        jobRequests.get(1).updateDate.toInstant() == instant
+    }
+
     def createRequest(int num) {
         def requests = []
         1.upto(num, {
@@ -476,7 +508,7 @@ class JobRequestPollTaskSpec extends Specification {
             request.jobParameter = "param1=${it}"
             request.pollingStatus = PollingStatus.INIT
             request.jobExecutionId = null
-            request.createDate = new Timestamp(System.currentTimeMillis())
+            request.createDate = new Timestamp(clock.millis())
             request.updateDate = null
             requests << request
         })

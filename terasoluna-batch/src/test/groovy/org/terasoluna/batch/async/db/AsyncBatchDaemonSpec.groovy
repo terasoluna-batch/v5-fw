@@ -102,7 +102,7 @@ class AsyncBatchDaemonSpec extends Specification {
         then:
         1 * systemExiter.exit(255)
         logger.getLoggingEvents().size() == 1
-        logger.getLoggingEvents().get(0).message.startsWith("Daemon termination error: ")
+        logger.getLoggingEvents().get(0).message.startsWith("Async Batch Daemon stopped due to an error.")
     }
 
 
@@ -205,6 +205,62 @@ class AsyncBatchDaemonSpec extends Specification {
         Files.deleteIfExists(nonTargetPath)
     }
 
+    def "the daemon is not stopped when the monitoring file of the target has been created as directory"() {
+        setup:
+        def executor = Executors.newSingleThreadExecutor()
+        def configLocation = ClassUtils.addResourcePathToPackagePath(AsyncBatchDaemonSpec.class,
+                "create-no-regular-file-async-batch-daemon.xml")
+        def targetPath = new File("./watching/dir").toPath()
+        Files.deleteIfExists(targetPath)
+        if (!Files.exists(targetPath.getParent())) {
+            Files.createDirectories(targetPath.getParent())
+        }
+        def daemon = new AsyncBatchDaemon()
+        def daemonExecutor = new DaemonExecutor(daemon, configLocation)
+        def result = -1
+        def checkLogs = []
+        checkLogs << LoggingEvent.warn("Polling stop file must be a regular file. [Path:{}]", targetPath)
+        def find = false
+
+        when:
+        def future = executor.submit(daemonExecutor)
+
+        // wait
+        for(i in 1..5) {
+            find = logger.allLoggingEvents.message.find {
+                it == "Async Batch Daemon will start watching the creation of a polling stop file. [Path:{}]"
+            } != null
+
+            if (find) {
+                break
+            }
+            sleep(1000)
+        }
+        if (!find) {
+            throw new RuntimeException("retry over")
+        }
+
+        try {
+            // not target file create
+            Files.createDirectories(targetPath)
+            result = future.get(10L, TimeUnit.SECONDS)
+        } catch (TimeoutException ignore) {
+            // target file create
+            targetPath.toFile().deleteDir()
+            Files.createFile(targetPath)
+            result = future.get()
+        } finally {
+            executor.shutdown()
+        }
+
+        then:
+        result == 0
+        that logger.getAllLoggingEvents(), hasItems(checkLogs as LoggingEvent[])
+
+        cleanup:
+        Files.deleteIfExists(targetPath)
+    }
+
     def "If you before daemon startup there is a file to be monitored, to continue to ignore the processing"() {
         setup:
         def executor = Executors.newSingleThreadExecutor()
@@ -219,7 +275,7 @@ class AsyncBatchDaemonSpec extends Specification {
         def daemon = new AsyncBatchDaemon()
         def daemonExecutor = new DaemonExecutor(daemon, configLocation)
         def result = -1
-        def checkLog = LoggingEvent.error("Polling stop file already exists. Daemon stop. Please delete the file.")
+        def checkLog = LoggingEvent.error("Polling stop file already exists. Daemon stop. Please delete the file. [Path:{}]", targetPath)
         when:
         def future = executor.submit(daemonExecutor)
 

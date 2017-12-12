@@ -37,6 +37,7 @@ import org.terasoluna.batch.async.db.model.PollingStatus;
 import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,6 +133,11 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     private boolean enablePollingLog = true;
 
     /**
+     * Clock for getting timestamp
+     */
+    private Clock clock = Clock.systemDefaultZone();
+
+    /**
      * Create JobRequestPollTask instance.
      * 
      * @param batchJobRequestRepository {@link BatchJobRequestRepository}.
@@ -145,9 +151,9 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
             JobOperator jobOperator, AutomaticJobRegistrar automaticJobRegistrar) {
 
         Assert.notNull(batchJobRequestRepository, "batchJobRequestRepository must be not null.");
-        Assert.notNull(jobOperator, "jobOperator must be not null.");
         Assert.notNull(transactionManager, "transactionManager must be not null.");
         Assert.notNull(daemonTaskExecutor, "daemonTaskExecutor must be not null.");
+        Assert.notNull(jobOperator, "jobOperator must be not null.");
         Assert.notNull(automaticJobRegistrar, "automaticJobRegistrar must be not null.");
 
         this.batchJobRequestRepository = batchJobRequestRepository;
@@ -243,7 +249,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      */
     boolean updateStatusPolled(BatchJobRequest batchJobRequest) {
         batchJobRequest.setPollingStatus(PollingStatus.POLLED);
-        batchJobRequest.setUpdateDate(getSystemTimestamp());
+        batchJobRequest.setUpdateDate(getTimestamp());
         String transactionName = "updatePollingStatusToPolled";
 
         // For update by optimistic locking, if the update is not performed, not issue a message as a quasi-normal.
@@ -258,13 +264,13 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      */
     boolean updateExecutionId(BatchJobRequest batchJobRequest) {
         batchJobRequest.setPollingStatus(PollingStatus.EXECUTED);
-        batchJobRequest.setUpdateDate(getSystemTimestamp());
+        batchJobRequest.setUpdateDate(getTimestamp());
         String transactionName = "updateExecutionIdAndPollingStatusToExecuted";
 
         boolean result = updateJobRequestTable(batchJobRequest, PollingStatus.POLLED, transactionName);
         if (!result) {
-            logger.warn("JobExecutionId update failed. [JobSeqId:{}][JobName:{}]", batchJobRequest.getJobSeqId(),
-                    batchJobRequest.getJobName());
+            logger.warn("JobExecutionId update failed. [JobSeqId:{}][JobName:{}][JobExecutionId:{}]", batchJobRequest.getJobSeqId(),
+                    batchJobRequest.getJobName(), batchJobRequest.getJobExecutionId());
         }
         return result;
     }
@@ -314,13 +320,18 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     }
 
     /**
-     * Get a current system timestamp.
-     * 
-     * @return Current system timestamp.
+     * Setting the clock.
+     *
+     * @param clock clock.
      */
-    protected Timestamp getSystemTimestamp() {
-        return new Timestamp(System.currentTimeMillis());
-    }
+    public void setClock(Clock clock) { this.clock = clock; }
+
+    /**
+     * Get a timestamp.
+     * 
+     * @return Timestamp.
+     */
+    protected Timestamp getTimestamp() { return new Timestamp(clock.millis()); }
 
     /**
      * To change the status during the shutdown preparation.
