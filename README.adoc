@@ -6,7 +6,7 @@ image:https://img.shields.io/badge/license-Apache_2-blue.svg[License,link=https:
 
 == Projects of Common Library
 
-All modules included in TERASOLUNA Batch Framework for Java (5.x) Common Library are listed up in the http://terasoluna-batch.github.io/guideline/5.0.0.RELEASE/ja/Ch02_TerasolunaBatchStack.html#Ch02_TerasolunaBatchStack_Components[development guideline].
+All modules included in TERASOLUNA Batch Framework for Java (5.x) Common Library are listed up in the http://terasoluna-batch.github.io/guideline[development guideline].
 
 == Getting Started
 
@@ -28,7 +28,7 @@ Common Library can be downloaded using maven through the following settings in p
 <dependency>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch</artifactId>
-    <version>5.0.0.RELEASE</version>
+    <version>5.0.2.RELEASE</version>
 </dependency>
 ----
 
