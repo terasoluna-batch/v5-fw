@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.1.0.RELEASE</version>
+        <version>5.1.1.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -269,6 +269,16 @@
     <dependencyManagement>
         <dependencies>
 
+            <!-- == Begin Spring Framework BOM == -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>${spring-framework-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- == End Spring Framework BOM == -->
+
             <!-- == Begin Spring IO Platform == -->
             <dependency>
                 <groupId>io.spring.platform</groupId>
@@ -296,7 +306,7 @@
                 <version>${org.mybatis.typehandlers.jsr310.version}</version>
             </dependency>
             <!-- == End MyBatis == -->
-        
+
             <!-- == Begin Spock-report == -->
             <dependency>
                 <groupId>com.athaydes</groupId>
@@ -490,6 +500,7 @@
         <!-- == Dependency Versions == -->
         <!-- == Spring IO Platform == -->
         <io.spring.platform.version>Brussels-SR5</io.spring.platform.version>
+        <spring-framework-bom.version>4.3.14.RELEASE</spring-framework-bom.version>
         <!-- == MyBatis3 == -->
         <org.mybatis.version>3.4.5</org.mybatis.version>
         <org.mybatis.spring.version>1.3.1</org.mybatis.spring.version>
