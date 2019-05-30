@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch-build</artifactId>
-    <version>5.1.1.RELEASE</version>
+    <version>5.2.1.RELEASE</version>
     <packaging>pom</packaging>
     <name>TERASOLUNA Batch Framework for Java (5.x) Build</name>
     <description>TERASOLUNA Batch Framework for Java (5.x) Build</description>
@@ -59,6 +59,20 @@
         </repository>
 
     </repositories>
+    <pluginRepositories>
+        <!-- === Groovy Maven Repository === -->
+        <pluginRepository>
+            <id>bintray</id>
+            <name>Groovy Bintray</name>
+            <url>https://dl.bintray.com/groovy/maven</url>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
     <properties>
         <!-- == Maven Plugin Versions == -->
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>

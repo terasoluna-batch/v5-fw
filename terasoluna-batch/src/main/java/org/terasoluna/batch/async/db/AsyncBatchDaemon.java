@@ -23,8 +23,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.StringUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -80,6 +83,18 @@ public class AsyncBatchDaemon {
     private static SystemExiter systemExiter = new JvmSystemExiter();
 
     /**
+     * Task executor for handling threads to perform the job.
+     */
+    @Inject
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    /**
+     * Task scheduler for processing jobs at regular intervals.
+     */
+    @Inject
+    private ThreadPoolTaskScheduler threadPoolTaskScheduler;
+
+    /**
      * Monitoring specified a file path.
      */
     @Value("${async-batch-daemon.polling-stop-file-path}")
@@ -121,6 +136,14 @@ public class AsyncBatchDaemon {
                         filePath);
                 detectedWatchKey = detectWatchKey(watcher, watchKey, filePath);
             }
+
+            try {
+                threadPoolTaskScheduler.shutdown();
+            } catch (Throwable e) {
+                logger.error("Async Batch Daemon stopped due to an error. [Error:" + e.getMessage() + "]", e);
+            }
+
+            threadPoolTaskExecutor.shutdown();
 
         } catch (Throwable e) {
             logger.error("Async Batch Daemon stopped due to an error. [Error:" + e.getMessage() + "]", e);
