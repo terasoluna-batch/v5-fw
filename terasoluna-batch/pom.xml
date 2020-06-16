@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.2.1.RELEASE</version>
+        <version>5.3.0.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -484,21 +484,21 @@
     </dependencies>
     <properties>
         <!-- == Maven Plugin Versions == -->
-        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-        <groovy-eclipse-compiler.version>3.3.0-01</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>2.5.4-01</groovy-eclipse-batch.version>
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <groovy-eclipse-compiler.version>3.6.0-02</groovy-eclipse-compiler.version>
+        <groovy-eclipse-batch.version>2.5.8-02</groovy-eclipse-batch.version>
         <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
-        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
-        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+        <maven-source-plugin.version>3.2.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
+        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+        <maven-assembly-plugin.version>3.2.0</maven-assembly-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-        <maven-site-plugin.version>3.7.1</maven-site-plugin.version>
+        <maven-site-plugin.version>3.8.2</maven-site-plugin.version>
         <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
-        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
         <com.google.code.maven-license-plugin.version>1.4.0</com.google.code.maven-license-plugin.version>
         <formatter-maven-plugin.version>0.5.2</formatter-maven-plugin.version>
@@ -506,16 +506,16 @@
 
         <!-- == Dependency Versions == -->
         <!-- == Spring Boot Dependencies == -->
-        <org.springframework.boot.version>2.1.2.RELEASE</org.springframework.boot.version>
+        <org.springframework.boot.version>2.2.4.RELEASE</org.springframework.boot.version>
 
         <!-- == MyBatis3 == -->
-        <org.mybatis.version>3.5.0</org.mybatis.version>
-        <org.mybatis.spring.version>2.0.0</org.mybatis.spring.version>
+        <org.mybatis.version>3.5.3</org.mybatis.version>
+        <org.mybatis.spring.version>2.0.3</org.mybatis.spring.version>
 
         <!-- == Spock == -->
-        <org.spockframework.spock-core.version>1.2-groovy-2.4</org.spockframework.spock-core.version>
-        <org.spockframework.spock-spring.version>1.2-groovy-2.4</org.spockframework.spock-spring.version>
-        <com.athaydes.spock-reports.version>1.6.1</com.athaydes.spock-reports.version>
+        <org.spockframework.spock-core.version>1.3-groovy-2.4</org.spockframework.spock-core.version>
+        <org.spockframework.spock-spring.version>1.3-groovy-2.4</org.spockframework.spock-spring.version>
+        <com.athaydes.spock-reports.version>1.6.2</com.athaydes.spock-reports.version>
 
         <!-- == SLF4J-Test == -->
         <uk.org.lidalia.slf4j-test.version>1.2.0</uk.org.lidalia.slf4j-test.version>
@@ -524,13 +524,13 @@
         <org.dbunit.dbunit.version>2.5.4</org.dbunit.dbunit.version>
 
         <!-- == CGLib == -->
-        <cglib.cglib-nodep.version>3.2.8</cglib.cglib-nodep.version>
+        <cglib.cglib-nodep.version>3.3.0</cglib.cglib-nodep.version>
 
         <!-- == Javax Inject == -->
         <javax.inject.version>1</javax.inject.version>
 
         <!-- == Groovy == -->
-        <org.codehaus.groovy.version>2.4.16</org.codehaus.groovy.version>
+        <org.codehaus.groovy.version>2.4.17</org.codehaus.groovy.version>
 
         <!-- == Project Properties == -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
