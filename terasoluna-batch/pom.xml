@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.3.0.RELEASE</version>
+        <version>5.3.1.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -506,7 +506,7 @@
 
         <!-- == Dependency Versions == -->
         <!-- == Spring Boot Dependencies == -->
-        <org.springframework.boot.version>2.2.4.RELEASE</org.springframework.boot.version>
+        <org.springframework.boot.version>2.2.12.RELEASE</org.springframework.boot.version>
 
         <!-- == MyBatis3 == -->
         <org.mybatis.version>3.5.3</org.mybatis.version>

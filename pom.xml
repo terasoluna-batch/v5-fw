@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch-build</artifactId>
-    <version>5.3.0.RELEASE</version>
+    <version>5.3.1.RELEASE</version>
     <packaging>pom</packaging>
     <name>TERASOLUNA Batch Framework for Java (5.x) Build</name>
     <description>TERASOLUNA Batch Framework for Java (5.x) Build</description>
@@ -119,6 +119,12 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
