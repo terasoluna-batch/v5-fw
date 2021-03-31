@@ -197,7 +197,7 @@ public class AsyncBatchDaemon {
      */
     private int checkSpecifiedFilePath() {
 
-        if (StringUtils.isEmpty(pollingStopFilePath)) {
+        if (!StringUtils.hasText(pollingStopFilePath)) {
             logger.error("Polling stop file is required in application properties. [key:{}]",
                     "async-batch-daemon.polling-stop-file-path");
             return FAILURE_STATUS;
