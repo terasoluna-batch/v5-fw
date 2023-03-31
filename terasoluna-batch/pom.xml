@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.4.1.RELEASE</version>
+        <version>5.4.2.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -297,14 +297,6 @@
             </dependency>
             <!-- == End DBUnit == -->
 
-            <!-- == Begin CGLib == -->
-            <dependency>
-                <groupId>cglib</groupId>
-                <artifactId>cglib-nodep</artifactId>
-                <version>${cglib.cglib-nodep.version}</version>
-            </dependency>
-            <!-- == End CGLib == -->
-
             <!-- == Begin Other == -->
             <dependency>
                 <groupId>jakarta.inject</groupId>
@@ -397,13 +389,13 @@
         </dependency>
         <!-- == End DBUnit == -->
 
-        <!-- == Begin CGLib == -->
+        <!-- == Begin ByteBuddy == -->
         <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- == End CGLib == -->
+        <!-- == End ByteBuddy == -->
 
         <!-- == Begin Data Source == -->
         <dependency>
@@ -479,8 +471,8 @@
         <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
-        <maven-install-plugin.version>3.0.0-M1</maven-install-plugin.version>
-        <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
+        <maven-install-plugin.version>3.0.1</maven-install-plugin.version>
+        <maven-deploy-plugin.version>3.0.0</maven-deploy-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <license-maven-plugin.version>4.1</license-maven-plugin.version>
@@ -488,11 +480,11 @@
 
         <!-- == Dependency Versions == -->
         <!-- == Spring Boot Dependencies == -->
-        <org.springframework.boot.version>2.6.1</org.springframework.boot.version>
+        <org.springframework.boot.version>2.7.7</org.springframework.boot.version>
 
         <!-- == MyBatis3 == -->
-        <org.mybatis.version>3.5.7</org.mybatis.version>
-        <org.mybatis.spring.version>2.0.6</org.mybatis.spring.version>
+        <org.mybatis.version>3.5.11</org.mybatis.version>
+        <org.mybatis.spring.version>2.1.0</org.mybatis.spring.version>
 
         <!-- == Spock == -->
         <org.spockframework.spock-core.version>2.0-groovy-3.0</org.spockframework.spock-core.version>
@@ -503,10 +495,7 @@
         <uk.org.lidalia.slf4j-test.version>1.2.0</uk.org.lidalia.slf4j-test.version>
 
         <!-- == DBUnit == -->
-        <org.dbunit.dbunit.version>2.7.2</org.dbunit.dbunit.version>
-
-        <!-- == CGLib == -->
-        <cglib.cglib-nodep.version>3.3.0</cglib.cglib-nodep.version>
+        <org.dbunit.dbunit.version>2.7.3</org.dbunit.dbunit.version>
 
         <!-- == Jakarta Inject == -->
         <jakarta.inject.version>1.0.5</jakarta.inject.version>

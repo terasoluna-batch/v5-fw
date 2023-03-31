@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch-build</artifactId>
-    <version>5.4.1.RELEASE</version>
+    <version>5.4.2.RELEASE</version>
     <packaging>pom</packaging>
     <name>TERASOLUNA Batch Framework for Java (5.x) Build</name>
     <description>TERASOLUNA Batch Framework for Java (5.x) Build</description>
@@ -78,6 +78,7 @@
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <!-- == Project Properties == -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
     </properties>
     <profiles>
         <profile>
@@ -151,4 +152,16 @@
     <modules>
         <module>terasoluna-batch</module>
     </modules>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
 </project>

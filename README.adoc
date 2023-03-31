@@ -28,7 +28,7 @@ Common Library can be downloaded using maven through the following settings in p
 <dependency>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch</artifactId>
-    <version>5.4.1.RELEASE</version>
+    <version>5.4.2.RELEASE</version>
 </dependency>
 ----
 
