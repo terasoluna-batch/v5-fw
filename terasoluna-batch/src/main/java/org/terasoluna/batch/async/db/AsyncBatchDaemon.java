@@ -22,26 +22,28 @@ import org.springframework.batch.core.launch.support.SystemExiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.File;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
+import java.util.Objects;
+import static java.net.URLClassLoader.*;
 
 /**
  * Async Batch Daemon is basic daemon to launch a job request polling task.
  * <p>
  * This daemon is launched a job request polling task and monitoring specified a file to stop task and oneself. Daemon requires
- * a xml application context containing of a job request polling task. The default application context is
- * "/META-INF/spring/async-batch-daemon.xml" on the class path. And application context will automatically activate the profile
- * of "async".
+ * a application context containing of a job request polling task.
+ * The default application context is
+ * "org.terasoluna.batch.config.AsyncBatchDaemonConfig"(Java Config)  or "/META-INF/spring/async-batch-daemon.xml"(XML Config)
+ * on the class path.
+ * And application context will automatically activate the profile of "async".
  * </p>
  * <p>
  * The monitoring file must be set in the key of "async-batch-daemon.polling-stop-file-path"in a application property file. This
@@ -68,9 +70,14 @@ public class AsyncBatchDaemon {
     private static final Logger logger = LoggerFactory.getLogger(AsyncBatchDaemon.class);
 
     /**
-     * The default path of the configuration file to start the daemon.
+     * The default path of the configuration file to start the daemon(Java Config).
      */
-    private static final String DEFAULT_CONFIG_LOCATION = "/META-INF/spring/async-batch-daemon.xml";
+    private static final String DEFAULT_CONFIG_LOCATION_JAVACONFIG = "org.terasoluna.batch.config.AsyncBatchDaemonConfig";
+    
+    /**
+     * The default path of the configuration file to start the daemon(XML Config).
+     */
+    private static final String DEFAULT_CONFIG_LOCATION_XMLCONFIG = "/META-INF/spring/async-batch-daemon.xml";
 
     /**
      * Exit code at the time of the failure of a daemon.
@@ -97,13 +104,58 @@ public class AsyncBatchDaemon {
     /**
      * Monitoring specified a file path.
      */
-    @Value("${async-batch-daemon.polling-stop-file-path}")
+    @Value("${async-batch-daemon.polling-stop-file-path:#{null}}")
     private String pollingStopFilePath;
+
+    /**
+     * Load Application Context.
+     *
+     * @param configLocation The application context containing a polling task (e.g. {@link JobRequestPollTask}).
+     * @return Application Context.
+     */
+    ConfigurableApplicationContext loadContext(String configLocation) throws ClassNotFoundException {
+        configLocation = determineContextPath(configLocation, ClassUtils.getDefaultClassLoader());
+        logger.debug("configLocation:{}", configLocation);
+        if (configLocation.endsWith(".xml")) {
+            // for XML Config
+            logger.debug("recognized XML Config.");
+            final ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[] { configLocation }, false);
+            context.getEnvironment().setActiveProfiles("async");
+            context.refresh();
+            return context;
+        }
+        // for Java Config
+        logger.debug("recognized Java Config.");
+        AnnotationConfigApplicationContext annotationConfigApplicationContext =
+                new AnnotationConfigApplicationContext();
+        Class<?> componentClass = annotationConfigApplicationContext.getClassLoader().loadClass(configLocation);
+        annotationConfigApplicationContext.getEnvironment().setActiveProfiles("async");
+        annotationConfigApplicationContext.register(componentClass);
+        annotationConfigApplicationContext.refresh();
+        return annotationConfigApplicationContext;
+    }
+
+    /**
+     * Determine application context path.
+     *
+     * @param configLocation Application context path specified in the argument.
+     * @param loader Class loader.
+     * @return Application context path.
+     */
+    String determineContextPath(String configLocation, ClassLoader loader) {
+        if (Objects.nonNull(configLocation)) {
+            return configLocation;
+        }
+        if (ClassUtils.isPresent(DEFAULT_CONFIG_LOCATION_JAVACONFIG, loader)) {
+            return DEFAULT_CONFIG_LOCATION_JAVACONFIG;
+        }
+        return DEFAULT_CONFIG_LOCATION_XMLCONFIG;
+    }
 
     /**
      * Start a async batch daemon.
      *
-     * @param configLocation The xml application context containing a polling task (e.g. {@link JobRequestPollTask}).
+     * @param configLocation The application context containing a polling task (e.g. {@link JobRequestPollTask}).
      * @return Exit status. Return zero on normal exit but return 255 on abnormal exit.
      * @see AsyncBatchDaemon#main(String[])
      */
@@ -114,9 +166,7 @@ public class AsyncBatchDaemon {
         WatchKey watchKey = null;
         WatchKey detectedWatchKey = null;
 
-        try (ConfigurableApplicationContext context = new ClassPathXmlApplicationContext(new String[] { configLocation }, false)) {
-            context.getEnvironment().setActiveProfiles("async");
-            context.refresh();
+        try (ConfigurableApplicationContext context = loadContext(configLocation)) {
             context.registerShutdownHook();
             context.getAutowireCapableBeanFactory().autowireBeanProperties(this,
                     AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
@@ -270,7 +320,7 @@ public class AsyncBatchDaemon {
 
         AsyncBatchDaemon daemon = new AsyncBatchDaemon();
 
-        String configLocation = DEFAULT_CONFIG_LOCATION;
+        String configLocation = null;
 
         if (args.length > 0) {
             configLocation = args[0];

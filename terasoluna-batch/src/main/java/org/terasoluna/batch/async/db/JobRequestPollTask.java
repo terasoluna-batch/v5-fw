@@ -206,6 +206,14 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
             List<BatchJobRequest> requests = batchJobRequestRepository.find(pollingQueryParams);
             for (final BatchJobRequest request : requests) {
                 try {
+                    String jobParams = request.getJobParameter();
+                    if(jobParams == null){
+                        request.setJobParameter("");
+                    }else {
+                        if (jobParams.contains(",")) {
+                            request.setJobParameter(jobParams.replace(",", " "));
+                        }
+                    }
                     daemonTaskExecutor.execute(() -> executeJob(request));
                 } catch (TaskRejectedException e) {
                     if (logger.isDebugEnabled()) {

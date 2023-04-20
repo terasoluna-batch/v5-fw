@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.terasoluna.batch</groupId>
     <artifactId>terasoluna-batch-build</artifactId>
-    <version>5.4.0.RELEASE</version>
+    <version>5.5.0.RELEASE</version>
     <packaging>pom</packaging>
     <name>TERASOLUNA Batch Framework for Java (5.x) Build</name>
     <description>TERASOLUNA Batch Framework for Java (5.x) Build</description>
@@ -45,7 +45,6 @@
             <name>Maven Central repository</name>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
-
         <!-- === TERASOLUNA Batch SNAPSHOTS Repository === -->
         <repository>
             <releases>
@@ -55,7 +54,11 @@
                 <enabled>true</enabled>
             </snapshots>
             <id>terasoluna-batch-snapshots</id>
-            <url>http://repo.terasoluna.org/nexus/content/repositories/terasoluna-batch-snapshots/</url>
+            <url>https://nexus.func.test:8443/repository/maven-snapshots/</url>
+        </repository>
+        <repository>
+            <id>sonatype-oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
     </repositories>
     <pluginRepositories>
@@ -74,21 +77,27 @@
     </pluginRepositories>
     <properties>
         <!-- == Maven Plugin Versions == -->
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
         <!-- == Project Properties == -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <profiles>
         <profile>
-            <id>default</id>
+            <id>nexus</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>nexus</name>
+                </property>
             </activation>
             <distributionManagement>
+                <repository>
+                    <id>terasoluna-batch-releases</id>
+                    <url>https://nexus.func.test:8443/repository/maven-releases/</url>
+                </repository>
                 <snapshotRepository>
                     <id>terasoluna-batch-snapshots</id>
-                    <url>http://repo.terasoluna.org/nexus/content/repositories/terasoluna-batch-snapshots/</url>
+                    <url>https://nexus.func.test:8443/repository/maven-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
         </profile>

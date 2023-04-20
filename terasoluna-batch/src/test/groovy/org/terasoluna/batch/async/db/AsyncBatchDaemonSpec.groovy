@@ -50,6 +50,7 @@ class AsyncBatchDaemonSpec extends Specification {
 
     def logger = TestLoggerFactory.getTestLogger(AsyncBatchDaemon.class)
 
+    def mockLoader = Mock(ClassLoader.class)
 
     def cleanup() {
         TestLoggerFactory.clearAll()
@@ -57,50 +58,85 @@ class AsyncBatchDaemonSpec extends Specification {
         Files.deleteIfExists(path)
     }
 
-    def "Load default bean definition"() {
+    def "Load default bean definition(Java Config)"() {
 
         setup:
-        AsyncBatchDaemon.presetSystemExiter(systemExiter);
-        def checkLog = LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
+        AsyncBatchDaemon.presetSystemExiter(systemExiter)
+        def checkLogs = []
+        checkLogs << LoggingEvent.info("Async Batch Daemon start.")
+        checkLogs << LoggingEvent.debug("configLocation:{}", "org.terasoluna.batch.config.AsyncBatchDaemonConfig")
+        checkLogs << LoggingEvent.debug("recognized Java Config.")
+        checkLogs << LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
                 "async-batch-daemon.polling-stop-file-path")
+
         when:
         AsyncBatchDaemon.main([] as String[])
 
         then:
         1 * systemExiter.exit(255)
-        that logger.getLoggingEvents(), hasItem(checkLog)
+        that logger.getAllLoggingEvents(), hasItems(checkLogs as LoggingEvent[])
+    }
+
+    def "Load default bean definition"() {
+
+        setup:
+        def checkLogs = []
+        checkLogs << LoggingEvent.info("Async Batch Daemon start.")
+        checkLogs << LoggingEvent.debug("configLocation:{}", "/META-INF/spring/async-batch-daemon.xml")
+        checkLogs << LoggingEvent.debug("recognized XML Config.")
+        checkLogs << LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
+                "async-batch-daemon.polling-stop-file-path")
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        def loader = URLClassLoader.newInstance(new URL[]{new File("hoge.jar").toURI().toURL()})
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(null, mockLoader)
+        }
+
+        when:
+        def result = spyDaemon.start(null)
+
+        then:
+        result == 255
+        that logger.getAllLoggingEvents(), hasItems(checkLogs as LoggingEvent[])
     }
 
 
     def "Load bean definition specified in the argument"() {
 
         setup:
-        AsyncBatchDaemon.presetSystemExiter(systemExiter);
         def configLocation = ClassUtils.addResourcePathToPackagePath(AsyncBatchDaemonSpec.class,
                 "invalid-path-async-batch-daemon.xml")
         def checkLog = LoggingEvent.error("Path not exists. Directory must exist for monitoring file. [Path:{}]",
                 new File("Invalid-Path").toPath())
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
+
         when:
-        AsyncBatchDaemon.main(configLocation)
+        def result = spyDaemon.start(configLocation)
 
         then:
-        1 * systemExiter.exit(255)
+        result == 255
         that logger.getLoggingEvents(), hasItem(checkLog)
     }
 
     def "Load non-existent bean definition specified in the argument"() {
 
         setup:
-        AsyncBatchDaemon.presetSystemExiter(systemExiter);
         def configLocation = ClassUtils.addResourcePathToPackagePath(AsyncBatchDaemonSpec.class,
                 "non-existent-async-batch-daemon.xml")
         logger.setEnabledLevels(Level.ERROR)
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
 
         when:
-        AsyncBatchDaemon.main(configLocation)
+        def result = spyDaemon.start(configLocation)
 
         then:
-        1 * systemExiter.exit(255)
+        result == 255
         logger.getLoggingEvents().size() == 1
         logger.getLoggingEvents().get(0).message.startsWith("Async Batch Daemon stopped due to an error.")
     }
@@ -112,10 +148,14 @@ class AsyncBatchDaemonSpec extends Specification {
                 "not-exist-directory-async-batch-daemon.xml")
         def checkLog = LoggingEvent.error("Path not exists. Directory must exist for monitoring file. [Path:{}]",
                 new File("./Unknown/end.txt").toPath())
-        def daemon = new AsyncBatchDaemon()
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
 
         when:
-        def result = daemon.start(configLocation)
+        def result = spyDaemon.start(configLocation)
+
         then:
         result == 255
         that logger.getLoggingEvents(), hasItem(checkLog)
@@ -130,10 +170,14 @@ class AsyncBatchDaemonSpec extends Specification {
         Files.createDirectories(path)
 
         def checkLog = LoggingEvent.error("Path is directory. Polling stop file must be a regular file. [Path:{}]", path)
-        def daemon = new AsyncBatchDaemon()
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
 
         when:
-        def result = daemon.start(configLocation)
+        def result = spyDaemon.start(configLocation)
+
         then:
         result == 255
         that logger.getLoggingEvents(), hasItem(checkLog)
@@ -155,8 +199,11 @@ class AsyncBatchDaemonSpec extends Specification {
         if (!Files.exists(targetPath.getParent())) {
             Files.createDirectories(targetPath.getParent())
         }
-        def daemon = new AsyncBatchDaemon()
-        def daemonExecutor = new DaemonExecutor(daemon, configLocation)
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
+        def daemonExecutor = new DaemonExecutor(spyDaemon, configLocation)
         def result = -1
         def checkLogs = []
         checkLogs << LoggingEvent.info("Async Batch Daemon start.")
@@ -215,8 +262,11 @@ class AsyncBatchDaemonSpec extends Specification {
         if (!Files.exists(targetPath.getParent())) {
             Files.createDirectories(targetPath.getParent())
         }
-        def daemon = new AsyncBatchDaemon()
-        def daemonExecutor = new DaemonExecutor(daemon, configLocation)
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
+        def daemonExecutor = new DaemonExecutor(spyDaemon, configLocation)
         def result = -1
         def checkLogs = []
         checkLogs << LoggingEvent.warn("Polling stop file must be a regular file. [Path:{}]", targetPath)
@@ -272,10 +322,14 @@ class AsyncBatchDaemonSpec extends Specification {
             Files.createDirectories(targetPath.getParent())
         }
         Files.createFile(targetPath)
-        def daemon = new AsyncBatchDaemon()
-        def daemonExecutor = new DaemonExecutor(daemon, configLocation)
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
+        def daemonExecutor = new DaemonExecutor(spyDaemon, configLocation)
         def result = -1
         def checkLog = LoggingEvent.error("Polling stop file already exists. Daemon stop. Please delete the file. [Path:{}]", targetPath)
+
         when:
         def future = executor.submit(daemonExecutor)
 
@@ -299,16 +353,18 @@ class AsyncBatchDaemonSpec extends Specification {
                 "active-profile-async-batch-daemon.xml")
         def checkLog = LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
                 "async-batch-daemon.polling-stop-file-path")
-        def daemon = new AsyncBatchDaemon()
+        def spyDaemon = Spy(AsyncBatchDaemon)
+        spyDaemon.determineContextPath(*_) >> {
+            callRealMethodWithArgs(configLocation, mockLoader)
+        }
 
         when:
-        def result = daemon.start(configLocation)
+        def result = spyDaemon.start(configLocation)
 
         then:
         result == 255
         that logger.getLoggingEvents(), hasItem(checkLog)
     }
-
 
     class DaemonExecutor implements Callable<Integer> {
 
