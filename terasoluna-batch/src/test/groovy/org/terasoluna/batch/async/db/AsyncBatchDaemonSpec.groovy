@@ -20,8 +20,8 @@ import org.springframework.util.ClassUtils
 import spock.lang.Narrative
 import spock.lang.Specification
 import uk.org.lidalia.slf4jext.Level
-import uk.org.lidalia.slf4jtest.LoggingEvent
-import uk.org.lidalia.slf4jtest.TestLoggerFactory
+import com.github.valfirst.slf4jtest.LoggingEvent
+import com.github.valfirst.slf4jtest.TestLoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path

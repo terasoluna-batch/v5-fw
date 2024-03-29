@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.4.2.RELEASE</version>
+        <version>5.4.3.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -283,9 +283,9 @@
 
             <!-- == Begin SLF4J-Test == -->
             <dependency>
-                <groupId>uk.org.lidalia</groupId>
+                <groupId>com.github.valfirst</groupId>
                 <artifactId>slf4j-test</artifactId>
-                <version>${uk.org.lidalia.slf4j-test.version}</version>
+                <version>${com.github.valfirst.slf4j-test.version}</version>
             </dependency>
             <!-- == End SLF4J-Test  == -->
 
@@ -294,6 +294,16 @@
                 <groupId>org.dbunit</groupId>
                 <artifactId>dbunit</artifactId>
                 <version>${org.dbunit.dbunit.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.oracle.database.jdbc</groupId>
+                        <artifactId>ojdbc8</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- == End DBUnit == -->
 
@@ -304,6 +314,14 @@
                 <version>${jakarta.inject.version}</version>
             </dependency>
             <!-- == End Other == -->
+
+            <!-- == Begin slf4j-api == -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j-api.version}</version>
+            </dependency>
+            <!-- == End slf4j-api == -->
         </dependencies>
     </dependencyManagement>
 
@@ -375,7 +393,7 @@
 
         <!-- SLF4J-Test -->
         <dependency>
-            <groupId>uk.org.lidalia</groupId>
+            <groupId>com.github.valfirst</groupId>
             <artifactId>slf4j-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -459,6 +477,12 @@
             <scope>test</scope>
         </dependency>
         <!-- == End Groovy == -->
+
+        <!-- == Begin slf4j-api == -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
     </dependencies>
     <properties>
         <!-- == Maven Plugin Versions == -->
@@ -480,25 +504,28 @@
 
         <!-- == Dependency Versions == -->
         <!-- == Spring Boot Dependencies == -->
-        <org.springframework.boot.version>2.7.7</org.springframework.boot.version>
+        <org.springframework.boot.version>2.7.18</org.springframework.boot.version>
 
         <!-- == MyBatis3 == -->
-        <org.mybatis.version>3.5.11</org.mybatis.version>
-        <org.mybatis.spring.version>2.1.0</org.mybatis.spring.version>
+        <org.mybatis.version>3.5.15</org.mybatis.version>
+        <org.mybatis.spring.version>2.1.2</org.mybatis.spring.version>
 
         <!-- == Spock == -->
-        <org.spockframework.spock-core.version>2.0-groovy-3.0</org.spockframework.spock-core.version>
-        <org.spockframework.spock-spring.version>2.0-groovy-3.0</org.spockframework.spock-spring.version>
-        <com.athaydes.spock-reports.version>2.1-groovy-3.0</com.athaydes.spock-reports.version>
+        <org.spockframework.spock-core.version>2.3-groovy-3.0</org.spockframework.spock-core.version>
+        <org.spockframework.spock-spring.version>2.3-groovy-3.0</org.spockframework.spock-spring.version>
+        <com.athaydes.spock-reports.version>2.5.1-groovy-3.0</com.athaydes.spock-reports.version>
 
         <!-- == SLF4J-Test == -->
-        <uk.org.lidalia.slf4j-test.version>1.2.0</uk.org.lidalia.slf4j-test.version>
+        <com.github.valfirst.slf4j-test.version>2.9.0</com.github.valfirst.slf4j-test.version>
 
         <!-- == DBUnit == -->
         <org.dbunit.dbunit.version>2.7.3</org.dbunit.dbunit.version>
 
         <!-- == Jakarta Inject == -->
         <jakarta.inject.version>1.0.5</jakarta.inject.version>
+
+        <!-- == slf4j-api == -->
+        <slf4j-api.version>2.0.12</slf4j-api.version>
 
         <!-- == Project Properties == -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
