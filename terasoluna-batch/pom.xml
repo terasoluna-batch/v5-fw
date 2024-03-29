@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.terasoluna.batch</groupId>
         <artifactId>terasoluna-batch-build</artifactId>
-        <version>5.5.0.RELEASE</version>
+        <version>5.6.0.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>terasoluna-batch</artifactId>
@@ -31,6 +31,7 @@
                     <configuration>
                         <source>${java-version}</source>
                         <target>${java-version}</target>
+                        <parameters>true</parameters>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -294,9 +295,9 @@
 
             <!-- == Begin SLF4J-Test == -->
             <dependency>
-                <groupId>uk.org.lidalia</groupId>
+                <groupId>com.github.valfirst</groupId>
                 <artifactId>slf4j-test</artifactId>
-                <version>${uk.org.lidalia.slf4j-test.version}</version>
+                <version>${com.github.valfirst.slf4j-test.version}</version>
             </dependency>
             <!-- == End SLF4J-Test  == -->
 
@@ -430,7 +431,7 @@
 
         <!-- SLF4J-Test -->
         <dependency>
-            <groupId>uk.org.lidalia</groupId>
+            <groupId>com.github.valfirst</groupId>
             <artifactId>slf4j-test</artifactId>
             <scope>test</scope>
         </dependency>
@@ -525,7 +526,7 @@
     <properties>
         <!-- == Maven Plugin Versions == -->
         <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-        <gmavenplus-plugin.version>1.13.1</gmavenplus-plugin.version>
+        <gmavenplus-plugin.version>3.0.2</gmavenplus-plugin.version>
         <maven-dependency-plugin.version>3.3.0</maven-dependency-plugin.version>
         <maven-resources-plugin.version>3.3.0</maven-resources-plugin.version>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
@@ -535,31 +536,31 @@
         <maven-install-plugin.version>3.0.1</maven-install-plugin.version>
         <maven-deploy-plugin.version>3.0.0</maven-deploy-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
-        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <license-maven-plugin.version>4.2.rc3</license-maven-plugin.version>
         <formatter-maven-plugin.version>2.20.0</formatter-maven-plugin.version>
 
         <!-- == Dependency Versions == -->
         <!-- == Spring Boot Dependencies == -->
-        <org.springframework.boot.version>3.0.1</org.springframework.boot.version>
+        <org.springframework.boot.version>3.2.2</org.springframework.boot.version>
 
         <!-- == MyBatis3 == -->
-        <org.mybatis.version>3.5.11</org.mybatis.version>
-        <org.mybatis.spring.version>3.0.1</org.mybatis.spring.version>
+        <org.mybatis.version>3.5.15</org.mybatis.version>
+        <org.mybatis.spring.version>3.0.3</org.mybatis.spring.version>
 
         <!-- == Spock == -->
-        <org.spockframework.spock-core.version>2.2-groovy-3.0</org.spockframework.spock-core.version>
-        <org.spockframework.spock-spring.version>2.2-groovy-3.0</org.spockframework.spock-spring.version>
-        <com.athaydes.spock-reports.version>2.1-groovy-3.0</com.athaydes.spock-reports.version>
+        <org.spockframework.spock-core.version>2.3-groovy-3.0</org.spockframework.spock-core.version>
+        <org.spockframework.spock-spring.version>2.3-groovy-3.0</org.spockframework.spock-spring.version>
+        <com.athaydes.spock-reports.version>2.5.1-groovy-3.0</com.athaydes.spock-reports.version>
 
         <!-- == Groovy == -->
-        <groovy.version>3.0.11</groovy.version>
+        <groovy.version>3.0.19</groovy.version>
 
         <!-- == SLF4J-API == -->
-        <slf4j-api.version>1.7.36</slf4j-api.version>
+        <slf4j-api.version>2.0.12</slf4j-api.version>
 
         <!-- == SLF4J-Test == -->
-        <uk.org.lidalia.slf4j-test.version>1.2.0</uk.org.lidalia.slf4j-test.version>
+        <com.github.valfirst.slf4j-test.version>2.9.0</com.github.valfirst.slf4j-test.version>
 
         <!-- == DBUnit == -->
         <org.dbunit.dbunit.version>2.7.3</org.dbunit.dbunit.version>

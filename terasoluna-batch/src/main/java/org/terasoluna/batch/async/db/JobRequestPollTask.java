@@ -41,6 +41,7 @@ import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Batch job request polling task.
@@ -147,8 +148,8 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      * @param jobOperator Job operator for launch job.
      */
     public JobRequestPollTask(BatchJobRequestRepository batchJobRequestRepository,
-            PlatformTransactionManager transactionManager, ThreadPoolTaskExecutor daemonTaskExecutor,
-            JobOperator jobOperator, AutomaticJobRegistrar automaticJobRegistrar) {
+                              PlatformTransactionManager transactionManager, ThreadPoolTaskExecutor daemonTaskExecutor,
+                              JobOperator jobOperator, AutomaticJobRegistrar automaticJobRegistrar) {
 
         Assert.notNull(batchJobRequestRepository, "batchJobRequestRepository must be not null.");
         Assert.notNull(transactionManager, "transactionManager must be not null.");
@@ -237,8 +238,17 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     void executeJob(BatchJobRequest batchJobRequest) {
         if (updateStatusPolled(batchJobRequest)) {
             try {
+                String parameters = batchJobRequest.getJobParameter();
+                Properties properties = new Properties();
+                if (!parameters.isEmpty()) {
+                    String[] keyValuePairs = parameters.split(" ");
+                    for (String string : keyValuePairs) {
+                        String[] keyValuePair = string.split("=");
+                        properties.setProperty(keyValuePair[0], keyValuePair[1]);
+                    }
+                }
                 Long jobExecutionId = jobOperator
-                        .start(batchJobRequest.getJobName(), batchJobRequest.getJobParameter());
+                        .start(batchJobRequest.getJobName(), properties);
                 batchJobRequest.setJobExecutionId(jobExecutionId);
             } catch (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
                 logger.error("Job execution fail. [JobSeqId:{}][JobName:{}]", batchJobRequest.getJobSeqId(),
