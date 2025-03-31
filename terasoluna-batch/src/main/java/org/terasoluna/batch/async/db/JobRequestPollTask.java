@@ -31,6 +31,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import org.terasoluna.batch.async.db.model.BatchJobRequest;
 import org.terasoluna.batch.async.db.model.PollingStatus;
@@ -101,6 +102,11 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
     private final AutomaticJobRegistrar automaticJobRegistrar;
 
     /**
+     * Transaction template.
+     */
+    private final TransactionTemplate transactionTemplate;
+
+    /**
      * Get up the number of job requests. It is equal to the number of concurrent jobs.
      */
     @Value("${async-batch-daemon.job-concurrency-num:3}")
@@ -161,7 +167,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
         this.daemonTaskExecutor = daemonTaskExecutor;
         this.jobOperator = jobOperator;
         this.automaticJobRegistrar = automaticJobRegistrar;
-
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     /**
@@ -285,17 +291,19 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      */
     boolean updateJobRequestTable(BatchJobRequest batchJobRequest, PollingStatus pollingStatus, String transactionName) {
 
-        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
-        definition.setName(transactionName);
+        transactionTemplate.setName(transactionName);
 
-        TransactionStatus status = transactionManager.getTransaction(definition);
         int result = 0;
         try {
-            result = batchJobRequestRepository.updateStatus(batchJobRequest, pollingStatus);
-            transactionManager.commit(status);
+            result = transactionTemplate.execute(status -> {
+                return batchJobRequestRepository.updateStatus(batchJobRequest, pollingStatus);
+            });
         } catch (Exception e) {
             logger.error("Update of batch job request table is fail.", e);
-            transactionManager.rollback(status);
+        } catch (Throwable e) {
+            logger.error("Batch job request table update error. [JobSeqId:{}][JobName:{}][JobExecutionId:{}]", batchJobRequest.getJobSeqId(),
+                    batchJobRequest.getJobName(), batchJobRequest.getJobExecutionId(), e);
+            throw e;
         }
 
         return result == 1;
