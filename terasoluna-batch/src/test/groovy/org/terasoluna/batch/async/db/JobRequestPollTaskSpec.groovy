@@ -46,7 +46,7 @@ import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository
 import spock.lang.Narrative
 import spock.lang.Specification
 import spock.lang.Unroll
-import uk.org.lidalia.slf4jext.Level
+import org.slf4j.event.Level
 import com.github.valfirst.slf4jtest.LoggingEvent
 import com.github.valfirst.slf4jtest.TestLoggerFactory
 
@@ -54,7 +54,6 @@ import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
-import java.time.ZonedDateTime
 
 import static org.hamcrest.CoreMatchers.hasItem
 import static spock.util.matcher.HamcrestSupport.that
@@ -341,7 +340,6 @@ class JobRequestPollTaskSpec extends Specification {
         1 * transactionManager.rollback(_)
         logger.allLoggingEvents.size() == 2
         logger.allLoggingEvents.get(1).message == "Update of batch job request table is fail."
-
     }
 
     def "When you fail to update the JobExecutionId outputs a warning log"() {
@@ -371,6 +369,51 @@ class JobRequestPollTaskSpec extends Specification {
         that logger.allLoggingEvents, hasItem(warnLog)
     }
 
+    def "If status update fails, output log"() {
+        setup:
+        def count = 1
+        List<BatchJobRequest> jobRequests = createRequest(count)
+        def transactionStatusMock = Mock(TransactionStatus)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        task.@pollingRowLimit = count
+
+        when:
+        task.poll()
+        sleep(1000L)
+
+        then:
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        1 * batchJobRequestRepository.updateStatus(_,_) >> {throw new RuntimeException("db access error.")}
+        0 * jobOperator.start(_,_) >>> 1
+        2 * transactionManager.getTransaction(_) >> transactionStatusMock
+        1 * transactionManager.commit(_)
+        1 * transactionManager.rollback(_)
+        logger.allLoggingEvents.size() == 2
+        logger.allLoggingEvents.get(1).message == "Update of batch job request table is fail."
+    }
+
+    def "If status acquisition fails, output log"() {
+        setup:
+        def count = 1
+        List<BatchJobRequest> jobRequests = createRequest(count)
+        def transactionStatusMock = Mock(TransactionStatus)
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+        task.@pollingRowLimit = count
+
+        when:
+        task.poll()
+        sleep(1000L)
+
+        then:
+        1 * batchJobRequestRepository.find(_) >> jobRequests
+        0 * batchJobRequestRepository.updateStatus(_,_) >> 1
+        0 * jobOperator.start(_,_) >>> 1
+        2 * transactionManager.getTransaction(_) >> transactionStatusMock >> { throw new Error("Simulated Throwable") }
+        1 * transactionManager.commit(_)
+        0 * transactionManager.rollback(_)
+        logger.allLoggingEvents.size() == 2
+        logger.allLoggingEvents.get(1).message == "Batch job request table update error. [JobSeqId:{}][JobName:{}][JobExecutionId:{}]"
+    }
 
     def "In the case of daemons stop state does not perform the polling process"() {
         setup:
@@ -534,11 +577,6 @@ class NoopJobOperator implements JobOperator {
 
     @Override
     String getParameters(long l) throws NoSuchJobExecutionException {
-        return null
-    }
-
-    @Override
-    Long start(String s, String s1) throws NoSuchJobException, JobInstanceAlreadyExistsException, JobParametersInvalidException {
         return null
     }
 

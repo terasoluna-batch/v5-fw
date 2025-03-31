@@ -19,7 +19,7 @@ import org.springframework.batch.core.launch.support.SystemExiter
 import org.springframework.util.ClassUtils
 import spock.lang.Narrative
 import spock.lang.Specification
-import uk.org.lidalia.slf4jext.Level
+import org.slf4j.event.Level
 import com.github.valfirst.slf4jtest.LoggingEvent
 import com.github.valfirst.slf4jtest.TestLoggerFactory
 
@@ -58,14 +58,14 @@ class AsyncBatchDaemonSpec extends Specification {
         Files.deleteIfExists(path)
     }
 
-    def "Load default bean definition(Java Config)"() {
+    def "Load default bean definition"() {
 
         setup:
         AsyncBatchDaemon.presetSystemExiter(systemExiter)
         def checkLogs = []
         checkLogs << LoggingEvent.info("Async Batch Daemon start.")
-        checkLogs << LoggingEvent.debug("configLocation:{}", "org.terasoluna.batch.config.AsyncBatchDaemonConfig")
-        checkLogs << LoggingEvent.debug("recognized Java Config.")
+        checkLogs << LoggingEvent.debug("configLocation:{}", "/META-INF/spring/async-batch-daemon.xml")
+        checkLogs << LoggingEvent.debug("recognized XML Config.")
         checkLogs << LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
                 "async-batch-daemon.polling-stop-file-path")
 
@@ -74,29 +74,6 @@ class AsyncBatchDaemonSpec extends Specification {
 
         then:
         1 * systemExiter.exit(255)
-        that logger.getAllLoggingEvents(), hasItems(checkLogs as LoggingEvent[])
-    }
-
-    def "Load default bean definition"() {
-
-        setup:
-        def checkLogs = []
-        checkLogs << LoggingEvent.info("Async Batch Daemon start.")
-        checkLogs << LoggingEvent.debug("configLocation:{}", "/META-INF/spring/async-batch-daemon.xml")
-        checkLogs << LoggingEvent.debug("recognized XML Config.")
-        checkLogs << LoggingEvent.error("Polling stop file is required in application properties. [key:{}]",
-                "async-batch-daemon.polling-stop-file-path")
-        def spyDaemon = Spy(AsyncBatchDaemon)
-        def loader = URLClassLoader.newInstance(new URL[]{new File("hoge.jar").toURI().toURL()})
-        spyDaemon.determineContextPath(*_) >> {
-            callRealMethodWithArgs(null, mockLoader)
-        }
-
-        when:
-        def result = spyDaemon.start(null)
-
-        then:
-        result == 255
         that logger.getAllLoggingEvents(), hasItems(checkLogs as LoggingEvent[])
     }
 

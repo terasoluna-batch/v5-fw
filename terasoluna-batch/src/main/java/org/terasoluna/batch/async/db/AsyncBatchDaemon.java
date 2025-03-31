@@ -70,11 +70,6 @@ public class AsyncBatchDaemon {
     private static final Logger logger = LoggerFactory.getLogger(AsyncBatchDaemon.class);
 
     /**
-     * The default path of the configuration file to start the daemon(Java Config).
-     */
-    private static final String DEFAULT_CONFIG_LOCATION_JAVACONFIG = "org.terasoluna.batch.config.AsyncBatchDaemonConfig";
-    
-    /**
      * The default path of the configuration file to start the daemon(XML Config).
      */
     private static final String DEFAULT_CONFIG_LOCATION_XMLCONFIG = "/META-INF/spring/async-batch-daemon.xml";
@@ -114,7 +109,7 @@ public class AsyncBatchDaemon {
      * @return Application Context.
      */
     ConfigurableApplicationContext loadContext(String configLocation) throws ClassNotFoundException {
-        configLocation = determineContextPath(configLocation, ClassUtils.getDefaultClassLoader());
+        configLocation = determineContextPath(configLocation);
         logger.debug("configLocation:{}", configLocation);
         if (configLocation.endsWith(".xml")) {
             // for XML Config
@@ -142,13 +137,11 @@ public class AsyncBatchDaemon {
      * @param loader Class loader.
      * @return Application context path.
      */
-    String determineContextPath(String configLocation, ClassLoader loader) {
+    String determineContextPath(String configLocation) {
         if (Objects.nonNull(configLocation)) {
             return configLocation;
         }
-        if (ClassUtils.isPresent(DEFAULT_CONFIG_LOCATION_JAVACONFIG, loader)) {
-            return DEFAULT_CONFIG_LOCATION_JAVACONFIG;
-        }
+
         return DEFAULT_CONFIG_LOCATION_XMLCONFIG;
     }
 
