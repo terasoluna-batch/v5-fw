@@ -20,18 +20,18 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.springframework.batch.core.JobParameter;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
+import org.springframework.batch.core.job.parameters.JobParameter;
+import org.springframework.batch.core.job.parameters.JobParameters;
+import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.converter.JobParametersConverter;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.dao.AbstractJdbcBatchMetadataDao;
-import org.springframework.batch.item.database.support.DataFieldMaxValueIncrementerFactory;
-import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueIncrementerFactory;
-import org.springframework.batch.support.DatabaseType;
+import org.springframework.batch.infrastructure.item.database.support.DataFieldMaxValueIncrementerFactory;
+import org.springframework.batch.infrastructure.item.database.support.DefaultDataFieldMaxValueIncrementerFactory;
+import org.springframework.batch.infrastructure.support.DatabaseType;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -77,7 +77,7 @@ public class JobParametersConverterImpl implements JobParametersConverter, Initi
         if (this.incrementerType == null) {
             this.incrementerType = DatabaseType.fromMetaData(dataSource).name();
         }
-        this.incrementer = this.factory.getIncrementer(this.incrementerType, tablePrefix + "JOB_SEQ");
+        this.incrementer = this.factory.getIncrementer(this.incrementerType, tablePrefix + "JOB_INSTANCE_SEQ");
     }
 
     /**
@@ -123,12 +123,12 @@ public class JobParametersConverterImpl implements JobParametersConverter, Initi
         boolean runIdFound = false;
 
         if(params != null) {
-            for(Map.Entry<String, JobParameter<?>> curParameter: params.getParameters().entrySet()) {
-                if(curParameter.getKey().equals(JOB_RUN_ID)) {
+            for(JobParameter<?> curParameter: params.parameters()) {
+                if(curParameter.name().equals(JOB_RUN_ID)) {
                     runIdFound = true;
                 }
 
-                properties.setProperty(curParameter.getKey(), curParameter.getValue().getValue().toString());
+                properties.setProperty(curParameter.name(), curParameter.value().toString());
             }
         }
 

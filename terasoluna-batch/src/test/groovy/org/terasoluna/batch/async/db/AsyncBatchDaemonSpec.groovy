@@ -15,7 +15,6 @@
  */
 package org.terasoluna.batch.async.db
 
-import org.springframework.batch.core.launch.support.SystemExiter
 import org.springframework.util.ClassUtils
 import spock.lang.Narrative
 import spock.lang.Specification

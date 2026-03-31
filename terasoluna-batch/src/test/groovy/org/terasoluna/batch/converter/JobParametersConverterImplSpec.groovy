@@ -16,9 +16,9 @@
 package org.terasoluna.batch.converter
 
 import org.apache.commons.dbcp2.BasicDataSource
-import org.springframework.batch.core.JobParameter
-import org.springframework.batch.core.JobParameters
-import org.springframework.batch.item.database.support.DefaultDataFieldMaxValueIncrementerFactory
+import org.springframework.batch.core.job.parameters.JobParameter
+import org.springframework.batch.core.job.parameters.JobParameters
+import org.springframework.batch.infrastructure.item.database.support.DefaultDataFieldMaxValueIncrementerFactory
 import org.springframework.jdbc.CannotGetJdbcConnectionException
 import org.springframework.jdbc.support.incrementer.PostgresSequenceMaxValueIncrementer
 import spock.lang.Specification
@@ -99,8 +99,8 @@ class JobParametersConverterImplSpec extends Specification {
         params = converter.getJobParameters(props_org)
 
         then:
-        for (Map.Entry<String, JobParameter> curParameter: params.getParameters().entrySet()) {
-            props.setProperty(curParameter.getKey(), curParameter.getValue().getValue().toString())
+        for (JobParameter<?> curParameter: params.parameters()) {
+            props.setProperty(curParameter.name(), curParameter.value().toString())
         }
         props.getProperty("param1") == props_org.getProperty("param1")
         props.getProperty("param2") == props_org.getProperty("param2")
@@ -126,8 +126,8 @@ class JobParametersConverterImplSpec extends Specification {
         params = converter.getJobParameters(props_org)
 
         then:
-        for (Map.Entry<String, JobParameter> curParameter: params.getParameters().entrySet()) {
-            props.setProperty(curParameter.getKey(), curParameter.getValue().getValue().toString())
+        for (JobParameter<?> curParameter: params.parameters()) {
+            props.setProperty(curParameter.name(), curParameter.value().toString())
         }
         props.getProperty("jsr_batch_run_id") == props_org.getProperty("jsr_batch_run_id")
         props.getProperty("param1") == props_org.getProperty("param1")
@@ -149,16 +149,16 @@ class JobParametersConverterImplSpec extends Specification {
         params = converter.getJobParameters(null)
 
         then:
-        params.getParameters().size() == 1
+        params.parameters().size() == 1
         1 * incrementerMock.nextLongValue() >> 1
     }
 
     def "jsr_batch_run_id is set when getProperties-method parameter 'params' is not null."() {
         setup:
         def props
-        def props_org = new LinkedHashMap()
-        props_org.put("param1", new JobParameter("value1", String.class))
-        props_org.put("param2", new JobParameter("value2", String.class))
+        def props_org = new LinkedHashSet<JobParameter>()
+        props_org.add(new JobParameter("param1", "value1", String.class))
+        props_org.add(new JobParameter("param2", "value2", String.class))
         def params = new JobParameters(props_org)
         def converter = new JobParametersConverterImpl(ds)
         def incrementerMock = Mock(PostgresSequenceMaxValueIncrementer)
@@ -170,8 +170,8 @@ class JobParametersConverterImplSpec extends Specification {
         props = converter.getProperties(params)
 
         then:
-        props.getProperty("param1") == (String)(props_org.get("param1").getValue())
-        props.getProperty("param2") == (String)(props_org.get("param2").getValue())
+        props.getProperty("param1") == props_org.toList()[0].value()
+        props.getProperty("param2") == props_org.toList()[1].value()
         props.size() == props_org.size() + 1
         1 * incrementerMock.nextLongValue() >> 1
     }
@@ -179,10 +179,10 @@ class JobParametersConverterImplSpec extends Specification {
     def "jsr_batch_run_id is not set when getProperties-method parameter 'params' is not null."() {
         setup:
         def props
-        def props_org = new LinkedHashMap()
-        props_org.put("jsr_batch_run_id", new JobParameter("1", String.class))
-        props_org.put("param1", new JobParameter("value1", String.class))
-        props_org.put("param2", new JobParameter("value2", String.class))
+        def props_org = new LinkedHashSet<JobParameter>()
+        props_org.add(new JobParameter("jsr_batch_run_id", "1", String.class))
+        props_org.add(new JobParameter("param1", "value1", String.class))
+        props_org.add(new JobParameter("param2", "value2", String.class))
         def params = new JobParameters(props_org)
         def converter = new JobParametersConverterImpl(ds)
         def incrementerMock = Mock(PostgresSequenceMaxValueIncrementer)
@@ -194,9 +194,9 @@ class JobParametersConverterImplSpec extends Specification {
         props = converter.getProperties(params)
 
         then:
-        props.getProperty("jsr_batch_run_id") == (String)(props_org.get("jsr_batch_run_id").getValue())
-        props.getProperty("param1") == (String)(props_org.get("param1").getValue())
-        props.getProperty("param2") == (String)(props_org.get("param2").getValue())
+        props.getProperty("jsr_batch_run_id") == props_org.toList()[0].value()
+        props.getProperty("param1") == props_org.toList()[1].value()
+        props.getProperty("param2") == props_org.toList()[2].value()
         props.size() == props_org.size()
         0 * incrementerMock.nextLongValue() >> 1
     }

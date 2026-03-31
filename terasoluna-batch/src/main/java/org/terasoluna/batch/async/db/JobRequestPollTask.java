@@ -17,7 +17,7 @@ package org.terasoluna.batch.async.db;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.JobParametersInvalidException;
+import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
 import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar;
 import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException;
 import org.springframework.batch.core.launch.JobOperator;
@@ -37,8 +37,8 @@ import org.terasoluna.batch.async.db.model.BatchJobRequest;
 import org.terasoluna.batch.async.db.model.PollingStatus;
 import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository;
 
-import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -256,9 +256,16 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
                 Long jobExecutionId = jobOperator
                         .start(batchJobRequest.getJobName(), properties);
                 batchJobRequest.setJobExecutionId(jobExecutionId);
-            } catch (NoSuchJobException | JobInstanceAlreadyExistsException | JobParametersInvalidException e) {
+            } catch (NoSuchJobException | JobInstanceAlreadyExistsException | InvalidJobParametersException e) {
                 logger.error("Job execution fail. [JobSeqId:{}][JobName:{}]", batchJobRequest.getJobSeqId(),
                         batchJobRequest.getJobName(), e);
+            } catch (IllegalArgumentException e) {
+                if ("The Job must not be null.".equals(e.getMessage())) {
+                    logger.error("Job execution fail. [JobSeqId:{}][JobName:{}]", batchJobRequest.getJobSeqId(),
+                            batchJobRequest.getJobName(), e);
+                } else {
+                    throw e;
+                }
             } finally {
                 updateExecutionId(batchJobRequest);
             }
@@ -355,7 +362,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      * 
      * @return Timestamp.
      */
-    protected Timestamp getTimestamp() { return new Timestamp(clock.millis()); }
+    protected LocalDateTime getTimestamp() { return LocalDateTime.now(clock); }
 
     /**
      * To change the status during the shutdown preparation.

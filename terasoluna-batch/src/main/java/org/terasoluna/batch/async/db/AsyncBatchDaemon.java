@@ -17,8 +17,6 @@ package org.terasoluna.batch.async.db;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.launch.support.JvmSystemExiter;
-import org.springframework.batch.core.launch.support.SystemExiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -82,7 +80,7 @@ public class AsyncBatchDaemon {
     /**
      * System Exiter.
      */
-    private static SystemExiter systemExiter = new JvmSystemExiter();
+    private static SystemExiter systemExiter = new SystemExiter();
 
     /**
      * Task executor for handling threads to perform the job.

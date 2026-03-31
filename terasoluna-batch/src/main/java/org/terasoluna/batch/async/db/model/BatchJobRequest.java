@@ -15,7 +15,7 @@
  */
 package org.terasoluna.batch.async.db.model;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 /**
  * Model of Batch Job Request Table.
@@ -52,12 +52,12 @@ public class BatchJobRequest {
     /**
      * Timestamp of creating job request.
      */
-    private Timestamp createDate;
+    private LocalDateTime createDate;
 
     /**
      * Timestamp of updating job request.
      */
-    private Timestamp updateDate;
+    private LocalDateTime updateDate;
 
     /**
      * Unique sequence number of the job request.
@@ -168,7 +168,7 @@ public class BatchJobRequest {
      * 
      * @return The current timestamp of created.
      */
-    public Timestamp getCreateDate() {
+    public LocalDateTime getCreateDate() {
         return createDate;
     }
 
@@ -177,7 +177,7 @@ public class BatchJobRequest {
      * 
      * @param createDate New timestamp of created.
      */
-    public void setCreateDate(Timestamp createDate) {
+    public void setCreateDate(LocalDateTime createDate) {
         this.createDate = createDate;
     }
 
@@ -186,7 +186,7 @@ public class BatchJobRequest {
      * 
      * @return The current timestamp of updated
      */
-    public Timestamp getUpdateDate() {
+    public LocalDateTime getUpdateDate() {
         return updateDate;
     }
 
@@ -195,7 +195,7 @@ public class BatchJobRequest {
      * 
      * @param updateDate New timestamp of updated.
      */
-    public void setUpdateDate(Timestamp updateDate) {
+    public void setUpdateDate(LocalDateTime updateDate) {
         this.updateDate = updateDate;
     }
 

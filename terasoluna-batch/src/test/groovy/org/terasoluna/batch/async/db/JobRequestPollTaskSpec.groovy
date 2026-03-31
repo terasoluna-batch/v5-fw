@@ -15,9 +15,11 @@
  */
 package org.terasoluna.batch.async.db
 
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParametersInvalidException
-import org.springframework.batch.core.UnexpectedJobExecutionException
+import org.springframework.batch.core.job.Job
+import org.springframework.batch.core.job.JobExecution
+import org.springframework.batch.core.job.parameters.JobParameters
+import org.springframework.batch.core.job.parameters.InvalidJobParametersException
+import org.springframework.batch.core.job.UnexpectedJobExecutionException
 import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar
 import org.springframework.batch.core.launch.JobExecutionNotRunningException
 import org.springframework.batch.core.launch.JobInstanceAlreadyExistsException
@@ -26,9 +28,9 @@ import org.springframework.batch.core.launch.JobParametersNotFoundException
 import org.springframework.batch.core.launch.NoSuchJobException
 import org.springframework.batch.core.launch.NoSuchJobExecutionException
 import org.springframework.batch.core.launch.NoSuchJobInstanceException
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException
-import org.springframework.batch.core.repository.JobRestartException
+import org.springframework.batch.core.launch.JobExecutionAlreadyRunningException
+import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException
+import org.springframework.batch.core.launch.JobRestartException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory
@@ -50,9 +52,9 @@ import org.slf4j.event.Level
 import com.github.valfirst.slf4jtest.LoggingEvent
 import com.github.valfirst.slf4jtest.TestLoggerFactory
 
-import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 
 import static org.hamcrest.CoreMatchers.hasItem
@@ -281,7 +283,7 @@ class JobRequestPollTaskSpec extends Specification {
 
     def "If an exception is thrown in the job execution, it performs the normal processing, to update the polling status"() {
         setup:
-        def count = 7
+        def count = 9
         List<BatchJobRequest> jobRequests = createRequest(count)
         def transactionStatusMock = Mock(TransactionStatus)
         jobOperator.start(_, _) >>> 1 >> {
@@ -289,8 +291,11 @@ class JobRequestPollTaskSpec extends Specification {
         } >> 2 >> {
             throw new JobInstanceAlreadyExistsException("Already exists.")
         } >> 3 >> {
-            throw new JobParametersInvalidException("invalid pollingQueryParams")
-        } >> 4
+            throw new InvalidJobParametersException("invalid pollingQueryParams")
+        } >> 4 >> {
+            throw new IllegalArgumentException("The Job must not be null.")
+        } >> 5
+
         def taskExecutor = new ThreadPoolTaskExecutor()
         taskExecutor.corePoolSize = count
         taskExecutor.maxPoolSize = count
@@ -309,14 +314,32 @@ class JobRequestPollTaskSpec extends Specification {
         (count * 2 + 1) * transactionManager.getTransaction(_) >> transactionStatusMock
         (count * 2 + 1) * transactionManager.commit(_)
         0 * transactionManager.rollback(_)
-        jobRequests.count({it.jobExecutionId == null}) == 3
-        logger.getAllLoggingEvents().size() == 4
+        jobRequests.count({it.jobExecutionId == null}) == 4
+        logger.getAllLoggingEvents().size() == 5
         // Since an exception occurs in any job different on every execution, inspection of the argument, the exception of the log is omitted.
         logger.allLoggingEvents.subList(1,3).each {
             assert it.level == Level.ERROR
             assert it.message == "Job execution fail. [JobSeqId:{}][JobName:{}]"
         }
 
+    }
+
+    def "IllegalArgumentException is rethrow in executeJob"() {
+        setup:
+        List<BatchJobRequest> jobRequests = createRequest(1)
+        batchJobRequestRepository.updateStatus(_, _) >> 1
+
+        def jobOperator = Mock(JobOperator) {
+            1 * start(_, _) >> { throw new IllegalArgumentException("other message") }
+        }
+        def task = new JobRequestPollTask(batchJobRequestRepository, transactionManager, daemonTaskExecutor, jobOperator, automaticJobRegistrar)
+
+        when:
+        task.executeJob((BatchJobRequest)jobRequests.get(0))
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "other message"
     }
 
     def "If a failure in the status update has occurred, do not run the job of unexecuted to roll back"() {
@@ -538,8 +561,8 @@ class JobRequestPollTaskSpec extends Specification {
         (count * 2 + 1) * transactionManager.commit(_)
         0 * transactionManager.rollback(_)
         task.clock.getZone().getId() == "America/Los_Angeles"
-        jobRequests.get(0).updateDate.toInstant() == instant
-        jobRequests.get(1).updateDate.toInstant() == instant
+        jobRequests.get(0).updateDate == LocalDateTime.ofInstant(instant, ZoneId.of("PST", ZoneId.SHORT_IDS))
+        jobRequests.get(1).updateDate == LocalDateTime.ofInstant(instant, ZoneId.of("PST", ZoneId.SHORT_IDS))
     }
 
     def createRequest(int num) {
@@ -551,7 +574,7 @@ class JobRequestPollTaskSpec extends Specification {
             request.jobParameter = "param1=${it}"
             request.pollingStatus = PollingStatus.INIT
             request.jobExecutionId = null
-            request.createDate = new Timestamp(clock.millis())
+            request.createDate = LocalDateTime.now(clock)
             request.updateDate = null
             requests << request
         })
@@ -560,6 +583,31 @@ class JobRequestPollTaskSpec extends Specification {
 }
 
 class NoopJobOperator implements JobOperator {
+    @Override
+    JobExecution run(Job job, JobParameters jobParameters) {
+        return null
+    }
+
+    @Override
+    JobExecution restart(JobExecution jobExecution) {
+        return null
+    }
+
+    @Override
+    JobExecution startNextInstance(Job job) {
+        return null
+    }
+
+    @Override
+    boolean stop(JobExecution jobExecution) {
+        return false
+    }
+
+    @Override
+    JobExecution abandon(JobExecution jobExecution) {
+        return null
+    }
+
     @Override
     List<Long> getExecutions(long l) throws NoSuchJobInstanceException {
         return null
@@ -581,12 +629,12 @@ class NoopJobOperator implements JobOperator {
     }
 
     @Override
-    Long restart(long l) throws JobInstanceAlreadyCompleteException, NoSuchJobExecutionException, NoSuchJobException, JobRestartException, JobParametersInvalidException {
+    Long restart(long l) throws JobInstanceAlreadyCompleteException, NoSuchJobExecutionException, NoSuchJobException, JobRestartException, InvalidJobParametersException {
         return null
     }
 
     @Override
-    Long startNextInstance(String s) throws NoSuchJobException, JobParametersNotFoundException, JobRestartException, JobExecutionAlreadyRunningException, JobInstanceAlreadyCompleteException, UnexpectedJobExecutionException, JobParametersInvalidException {
+    Long startNextInstance(String s) throws NoSuchJobException, JobParametersNotFoundException, JobRestartException, JobExecutionAlreadyRunningException, JobInstanceAlreadyCompleteException, UnexpectedJobExecutionException, InvalidJobParametersException {
         return null
     }
 
@@ -612,6 +660,11 @@ class NoopJobOperator implements JobOperator {
 
     @Override
     JobExecution abandon(long l) throws NoSuchJobExecutionException, JobExecutionAlreadyRunningException {
+        return null
+    }
+
+    @Override
+    JobExecution recover(JobExecution jobExecution) {
         return null
     }
 }

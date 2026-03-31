@@ -15,9 +15,9 @@
  */
 package org.terasoluna.batch.item.file.transform
 
-import org.springframework.batch.item.file.transform.IncorrectLineLengthException
-import org.springframework.batch.item.file.transform.Range
-import org.springframework.batch.item.file.transform.RangeArrayPropertyEditor
+import org.springframework.batch.infrastructure.item.file.transform.IncorrectLineLengthException
+import org.springframework.batch.infrastructure.item.file.transform.Range
+import org.springframework.batch.infrastructure.item.file.transform.RangeArrayPropertyEditor
 import spock.lang.Narrative
 import spock.lang.Specification
 import spock.lang.Unroll

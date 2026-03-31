@@ -15,9 +15,9 @@
  */
 package org.terasoluna.batch.item.file.transform;
 
-import org.springframework.batch.item.file.transform.AbstractLineTokenizer;
-import org.springframework.batch.item.file.transform.IncorrectLineLengthException;
-import org.springframework.batch.item.file.transform.Range;
+import org.springframework.batch.infrastructure.item.file.transform.AbstractLineTokenizer;
+import org.springframework.batch.infrastructure.item.file.transform.IncorrectLineLengthException;
+import org.springframework.batch.infrastructure.item.file.transform.Range;
 import org.springframework.util.Assert;
 
 import java.nio.charset.Charset;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Tokenizer used to process data obtained from files with fixed-byte-length format.
  * <p>
- * This Tokenizer differs from {@link org.springframework.batch.item.file.transform.FixedLengthTokenizer}. This Tokenizer
+ * This Tokenizer differs from {@link org.springframework.batch.infrastructure.item.file.transform.FixedLengthTokenizer}. This Tokenizer
  * processes the value specified in the {@code ranges} as the number of bytes.
  * </p>
  *
@@ -55,12 +55,12 @@ public class FixedByteLengthLineTokenizer extends AbstractLineTokenizer {
     /**
      * Set the column ranges and charset.
      * <p>
-     * The ranges used in conjunction with the {@link org.springframework.batch.item.file.transform.RangeArrayPropertyEditor}
+     * The ranges used in conjunction with the {@link org.springframework.batch.infrastructure.item.file.transform.RangeArrayPropertyEditor}
      * this property can be set in the form of a String describing the range boundaries, e.g. "1,4,7" or "1-3,4-6,7" or
      * "1-2,4-5,7-10".
      * </p>
      * <p>
-     * If do not use {@link org.springframework.batch.item.file.transform.RangeArrayPropertyEditor}, max/min value of each Range
+     * If do not use {@link org.springframework.batch.infrastructure.item.file.transform.RangeArrayPropertyEditor}, max/min value of each Range
      * element must always be specified.
      * </p>
      *

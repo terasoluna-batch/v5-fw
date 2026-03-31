@@ -15,7 +15,7 @@
  */
 package org.terasoluna.batch.item.file
 
-import org.springframework.batch.item.file.transform.IncorrectLineLengthException
+import org.springframework.batch.infrastructure.item.file.transform.IncorrectLineLengthException
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.InputStreamResource
 import spock.lang.Narrative

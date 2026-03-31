@@ -15,18 +15,18 @@
  */
 package org.terasoluna.batch.item.file.transform;
 
-import org.springframework.batch.item.file.transform.ExtractorLineAggregator;
+import org.springframework.batch.infrastructure.item.file.transform.ExtractorLineAggregator;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
- * A {@link org.springframework.batch.item.file.transform.LineAggregator} implementation that converts an object into a
+ * A {@link org.springframework.batch.infrastructure.item.file.transform.LineAggregator} implementation that converts an object into a
  * delimited single string.
  * <p>
  * This class supports enclosure and delimiter for like CSV file.
- * {@link org.springframework.batch.item.file.transform.DelimitedLineAggregator} supports only delimiter, but enclosure does
+ * {@link org.springframework.batch.infrastructure.item.file.transform.DelimitedLineAggregator} supports only delimiter, but enclosure does
  * not. The purpose of this class is to support specification as follows (which based on RFC 4180).
  * </p>
  * <ul>
