@@ -37,8 +37,8 @@ import org.terasoluna.batch.async.db.model.BatchJobRequest;
 import org.terasoluna.batch.async.db.model.PollingStatus;
 import org.terasoluna.batch.async.db.repository.BatchJobRequestRepository;
 
-import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -355,7 +355,7 @@ public class JobRequestPollTask implements InitializingBean, DisposableBean {
      * 
      * @return Timestamp.
      */
-    protected Timestamp getTimestamp() { return new Timestamp(clock.millis()); }
+    protected LocalDateTime getTimestamp() { return LocalDateTime.now(clock); }
 
     /**
      * To change the status during the shutdown preparation.

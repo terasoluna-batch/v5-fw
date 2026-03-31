@@ -50,9 +50,9 @@ import org.slf4j.event.Level
 import com.github.valfirst.slf4jtest.LoggingEvent
 import com.github.valfirst.slf4jtest.TestLoggerFactory
 
-import java.sql.Timestamp
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 
 import static org.hamcrest.CoreMatchers.hasItem
@@ -538,8 +538,8 @@ class JobRequestPollTaskSpec extends Specification {
         (count * 2 + 1) * transactionManager.commit(_)
         0 * transactionManager.rollback(_)
         task.clock.getZone().getId() == "America/Los_Angeles"
-        jobRequests.get(0).updateDate.toInstant() == instant
-        jobRequests.get(1).updateDate.toInstant() == instant
+        jobRequests.get(0).updateDate == LocalDateTime.ofInstant(instant, ZoneId.of("PST", ZoneId.SHORT_IDS))
+        jobRequests.get(1).updateDate == LocalDateTime.ofInstant(instant, ZoneId.of("PST", ZoneId.SHORT_IDS))
     }
 
     def createRequest(int num) {
@@ -551,7 +551,7 @@ class JobRequestPollTaskSpec extends Specification {
             request.jobParameter = "param1=${it}"
             request.pollingStatus = PollingStatus.INIT
             request.jobExecutionId = null
-            request.createDate = new Timestamp(clock.millis())
+            request.createDate = LocalDateTime.now(clock)
             request.updateDate = null
             requests << request
         })

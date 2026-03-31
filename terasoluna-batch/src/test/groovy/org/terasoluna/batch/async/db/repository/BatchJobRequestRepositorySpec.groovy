@@ -31,7 +31,7 @@ import spock.lang.Narrative
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import java.sql.Timestamp
+import java.time.LocalDateTime
 
 /**
  * Test BatchJobRequestRepository
@@ -280,14 +280,14 @@ class BatchJobRequestRepositorySpec extends Specification {
         request.jobSeqId = jobSeqId
         request.pollingStatus = status
         request.jobExecutionId = jobExecutionId
-        request.updateDate = new Timestamp(System.currentTimeMillis())
+        request.updateDate = LocalDateTime.now()
         request
     }
 
     def createDataSet(Closure c) {
         def replacementDataSet = new ReplacementDataSet(DataTableLoader.loadDataSet(c))
         replacementDataSet.addReplacementObject("[null]", null)
-        replacementDataSet.addReplacementObject("[now]", new Timestamp(System.currentTimeMillis()))
+        replacementDataSet.addReplacementObject("[now]", LocalDateTime.now().format("yyyy-MM-dd HH:mm:ss.SSS"))
         replacementDataSet
     }
 }

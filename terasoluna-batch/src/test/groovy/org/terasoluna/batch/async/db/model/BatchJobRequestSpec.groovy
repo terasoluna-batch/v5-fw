@@ -17,8 +17,9 @@ package org.terasoluna.batch.async.db.model
 
 import spock.lang.Specification
 
-import java.sql.Timestamp
 import java.time.Clock
+import java.time.Instant
+import java.time.LocalDateTime
 
 /**
  * Test BatchJobRequest
@@ -51,8 +52,9 @@ class BatchJobRequestSpec extends Specification {
         def jobParameter = "Param1=2011-01-02 Param2=222"
         def pollingStatus = PollingStatus.INIT
         def jobExecutionId = 456L
-        def createDate = new Timestamp(clock.millis())
-        def updateDate = new Timestamp(clock.millis() + 1L)
+        def createDate = LocalDateTime.now(clock)
+        def instant = Instant.ofEpochMilli(clock.millis() + 1L)
+        def updateDate = LocalDateTime.ofInstant(instant, clock.getZone())
         def request = new BatchJobRequest()
 
         when:
